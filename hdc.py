@@ -80,11 +80,15 @@ def learn_languages(n):
         file = open("language_recognition_data/training_texts/" + label + ".txt", "r")
         sum_hv = np.zeros(D)
 
+        print("Starting n-gram sum computing for: " + (label + ".txt") + "...")
+
         for line in file:
             sum_hv += gen_n_gram_sum(line, iM, D, n)
 
         sum_hv = binarizeHV(sum_hv, 0)
         AM[label] = sum_hv
+
+        print("Finished n-gram sum computing for: " + (label + ".txt"))
 
     return iM, AM
 
@@ -108,8 +112,8 @@ def gen_n_gram_sum(text, iM, D, n):
             num_shifts -= 1
 
         sum_hv += prod_hv
-        start += 1
-        end += 1
+        start += n
+        end += n
 
     return sum_hv
 
