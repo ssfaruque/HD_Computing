@@ -22,7 +22,7 @@ def gen_item_mem(list_of_symbols, D):
     return item_mem
 
 
-"""
+
 def gen_cont_item_mem(min_val, max_val, D, m):
     cont_item_mem = {}
     indices = rand.sample(range(D), D // 2)
@@ -32,22 +32,26 @@ def gen_cont_item_mem(min_val, max_val, D, m):
     curr_numerical_val = min_val
     hv = gen_rand_hv(D)
 
-    print(num_bits_to_flip)
-    print(hv)
+    print(indices)
+    print("num_bits_to_flip", num_bits_to_flip)
+    print("numerical_step", numerical_step)
+    print("hv", hv)
 
     start = 0
     end = num_bits_to_flip
 
     for i in range(m):
         print("start:{}, end:{}".format(start, end))
-        cont_item_mem[curr_numerical_val] = hv
+        cont_item_mem[curr_numerical_val] = np.copy(hv)
+        print("indices used: ", indices[start : end])
+        #print(curr_numerical_val, hv)
         hv[indices[start : end]] *= -1
         start = end
         end += num_bits_to_flip
         curr_numerical_val += numerical_step
 
     return cont_item_mem
-"""
+
 
 def cos_angle(hv1, hv2):
     return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
