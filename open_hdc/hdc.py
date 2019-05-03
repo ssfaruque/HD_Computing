@@ -3,6 +3,8 @@ import random as rand
 import math
 import pickle
 import os
+from abc import ABC, abstractmethod
+
 
 def gen_rand_hv(D):
     hv = np.empty(D)
@@ -13,46 +15,6 @@ def gen_rand_hv(D):
     return hv
 
 
-def gen_item_mem(list_of_symbols, D):
-    item_mem = {}
-
-    for symbol in list_of_symbols:
-        item_mem[symbol] = gen_rand_hv(D)
-
-    return item_mem
-
-
-
-def gen_cont_item_mem(min_val, max_val, D, m):
-    cont_item_mem = {}
-    indices = rand.sample(range(D), D // 2)
-
-    num_bits_to_flip = math.floor((D / 2) / (m - 1))
-    numerical_step = (max_val - min_val) / (m - 1)
-    curr_numerical_val = min_val
-    hv = gen_rand_hv(D)
-
-    print(indices)
-    print("num_bits_to_flip", num_bits_to_flip)
-    print("numerical_step", numerical_step)
-    print("hv", hv)
-
-    start = 0
-    end = num_bits_to_flip
-
-    for i in range(m):
-        print("start:{}, end:{}".format(start, end))
-        cont_item_mem[curr_numerical_val] = np.copy(hv)
-        print("indices used: ", indices[start : end])
-        hv[indices[start : end]] *= -1
-        start = end
-        end += num_bits_to_flip
-        curr_numerical_val += numerical_step
-
-    return cont_item_mem
-
-
-
 
 def binarizeHV(hv, threshold):
     for i in range(len(hv)):
@@ -61,119 +23,6 @@ def binarizeHV(hv, threshold):
         else:
             hv[i] = -1
     return hv
-
-
-
-def learn_languages(n):
-    D = 10000
-    alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u' ,'v', 'w', 'x', 'y', 'z', ' ']
-    lang_labels = ['afr', 'bul', 'ces', 'dan', 'nld', 'deu', 'eng', 'est', 'fin', 'fra', 'ell', 'hun', 'ita', 'lav', 'lit', 'pol', 'por', 'ron', 'slk', 'slv', 'spa', 'swe']
-
-    iM = gen_item_mem(alphabet + lang_labels, D)
-    AM = {}
-
-
-    for label in lang_labels:
-        file = open("language_recognition_data/training_texts/" + label + ".txt", "r")
-        sum_hv = np.zeros(D)
-
-        print("Starting " + str(n) + "-gram sum computing for: " + (label + ".txt") + "...")
-
-        for line in file:
-            sum_hv += gen_n_gram_sum(line, iM, D, n)
-
-        sum_hv = binarizeHV(sum_hv, 0)
-        AM[label] = sum_hv
-
-        print("Finished " + str(n) + "-gram sum computing for: " + (label + ".txt"))
-        file.close()
-
-    return iM, AM
-
-
-
-
-
-def test(model, n):
-    test_files = os.listdir("language_recognition_data/testing_texts")
-    language_names = {}
-    language_names["af"] = "afr"
-    language_names["bg"] = "bul"
-    language_names["cs"] = "ces"
-    language_names["da"] = "dan"
-    language_names["nl"] = "nld"
-    language_names["de"] = "deu"
-    language_names["en"] = "eng"
-    language_names["et"] = "est"
-    language_names["fi"] = "fin"
-    language_names["fr"] = "fra"
-    language_names["el"] = "ell"
-    language_names["hu"] = "hun"
-    language_names["it"] = "ita"
-    language_names["lv"] = "lav"
-    language_names["lt"] = "lit"
-    language_names["pl"] = "pol"
-    language_names["pt"] = "por"
-    language_names["ro"] = "ron"
-    language_names["sk"] = "slk"
-    language_names["sl"] = "slv"
-    language_names["es"] = "spa"
-    language_names["sv"] = "swe"
-
-    stats = {} # key is name of language, value is list [correct, total number]
-
-    for test_file in test_files:
-        key = test_file.split("_")[0]
-        label = language_names.get(key, None)
-
-        if label == None:
-            print("could not find " + key + " in language_names")
-            continue
-
-        file = open("language_recognition_data/testing_texts/" + test_file, "r")
-
-        for line in file:
-            query_hv = binarizeHV(gen_n_gram_sum(line, model.iM, model.D, n), 0)
-            classfiication = model.query(query_hv)
-
-            if label not in stats:
-                stats[label] = [0, 0]
-
-            correct = 0
-
-            if classfiication == label:
-                correct = 1
-
-            stats[label][0] += correct
-            stats[label][1] += 1
-
-        file.close()
-
-
-    file = open("accuracy-" + str(n) + "-n-gram.txt", "w")
-
-
-    sum_acc = 0
-    for lang in stats:
-        num_correct = stats[lang][0]
-        total_tests = stats[lang][1]
-        accuracy = num_correct / total_tests
-        sum_acc += accuracy
-        file.write(lang + " acc: " + str(accuracy) + "\n")
-        #print(lang + " acc: " + str(accuracy))
-
-    avg_acc = sum_acc / 21
-    #print("avg_acc: " + str(avg_acc))
-    file.write("avg_acc: " + str(avg_acc) + "\n")
-
-    file.close()
-
-
-
-
-        
-
-
 
 
 def gen_n_gram_sum(text, iM, D, n):
@@ -203,43 +52,24 @@ def gen_n_gram_sum(text, iM, D, n):
 
 
 
-def find_label(query_hv, AM):
-    label = "NONE"
-    maxAngle = -1
-
-    for key in AM:
-        similarity = cos_angle(AM[key], query_hv)
-        if  similarity > maxAngle:
-            maxAngle = similarity
-            label = key
-
-        print(key, ": ", similarity)
-
-    return label
-
-
-class HD_Model:
-    def __init__(self, D):
+class HD_Model(ABC):
+    def __init__(self, D=10000):
         self.D = D
         self.iM  = {}
         self.AM  = {}
-        
+        super().__init__()
 
-    """def save(self, file_name):
-        file = open(file_name, "wb")
-        pickle.dump((self.iM, self.CiM, self.AM, self.D), file)
-        file.close()
+    @abstractmethod
+    def train(self):
+        pass
 
-    def load(self, file_name):
-        file = open(file_name, "rb")
-        self = pickle.load((self.iM, self.CiM, self.AM, self.D))
-        file.close()
-    """
+    @abstractmethod
+    def test(self):
+        pass
 
-    def train(self, func, arg=None):
-        iM, AM = func(arg)
-        self.iM.update(iM)
-        self.AM.update(AM)
+    @abstractmethod
+    def load_dataset(self):
+        pass
 
     def _cos_angle(self, hv1, hv2):
         return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
@@ -283,7 +113,8 @@ class HD_Model:
             start = end
             end += num_bits_to_flip
             curr_numerical_val += numerical_step
-        
+
+
 
 def save(obj, file_name):
     file = open(file_name, "wb")
@@ -297,18 +128,12 @@ def load(file_name):
     return obj
 
 
+
+
+
+
 def main():
     D = 10000
-    n = 2
-
-    hd_model = HD_Model(D)
-
-
-    hd_model.gen_CiM(0, 10, 6)
-
-    print(hd_model.iM)
-
-
 
 
 
