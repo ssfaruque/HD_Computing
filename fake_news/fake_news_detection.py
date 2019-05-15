@@ -26,7 +26,7 @@ class Fake_News_HD_Model(hdc.HD_Model):
 		with open('datasets/liar_dataset/train.tsv', 'r') as file:
 			lines = file.readlines()
 			for line in lines:
-				line = line.rstrip()
+				line = line.strip()
 				columns = line.split('\t')
 				self.dataset.append(columns)
 
@@ -42,7 +42,7 @@ def main():
 
 	Fake_News_Model.load_dataset()
 
-	print(Fake_News_Model.dataset[1])
+	print(Fake_News_Model.dataset[0])
 
 
 
