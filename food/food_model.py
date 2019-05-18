@@ -78,7 +78,7 @@ class Food_Model(hdc.HD_Model):
 
 	def train(self):
 		#wavenum_step = 1.928816
-		training_set_length = 1
+		training_set_length = 11
 
 		print("Beginning training...")
 
@@ -88,43 +88,49 @@ class Food_Model(hdc.HD_Model):
 			absorbances = self.dataset[i][2:]
 			absorbances = list(map(float, absorbances))
 
+
+
 			if label not in self.AM:
 				self.AM[label] = np.zeros(self.D)
 
 			ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.D, n=3)
-			self.AM[label] += ngram_sum
+			self.AM[label] += binarizeHV(ngram_sum, 0)
 
 		# binarize the AMs
 		for key in self.AM:
 			self.AM[key] = binarizeHV(self.AM[key], 0)
 
 
+	def test(self):
+		
+		print("Beginning testing...")        
+		testing_set_length = len(self.dataset)
+		total = 0
+		correct = 0
 
-    def test(self):
-        print("Beginning testing...")        
-        testing_set_length = len(self.dataset)
-        total = 0
-        correct = 0
 
+		for i in range(101, testing_set_length):
+		    print("Testing on file:{}".format(self.dataset[i][1]))
+		    label       = int(self.dataset[i][0])
+		    absorbances = self.dataset[i][2:]
+		    absorbances = list(map(float, absorbances))
 
-        for i in range(101, testing_set_length):
-            print("Testing on file:{}".format(self.dataset[i][1]))
-            label       = int(self.dataset[i][0])
-            absorbances = self.dataset[i][2:]
-            absorbances = list(map(float, absorbances))
+		    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.D, n=3)
+		    query_hv = binarizeHV(ngram_sum, 0)
+		    predicted = self.query(query_hv)
+		    
+		    print("predicted: {}, ground truth: {}".format(predicted, label))
 
-            ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.D, n=3)
-            query_hv = binarizeHV(ngram_sum, 0)
-            predicted = self.query_hv(query_hv)
+			
 
-            if predicted == label:
-                correct += 1
+		    if predicted == label:
+		        correct += 1
 
-            total += 1
+		    total += 1
 
-        accuracy = correct / total
+		accuracy = correct / total
 
-        print("accuracy: {}".format(accuracy))
+		print("accuracy: {}".format(accuracy))
 
 
 
@@ -159,9 +165,9 @@ def main():
 	food_model.gen_iM(["absorbance_start"], D=10000)
 	food_model.iM["absorbance_end"] = gen_max_hv(food_model.iM["absorbance_start"], D)
 	food_model.train()
-    food_model.test()
-
 	save(food_model, "model.bin")
+	food_model.test()
+	
 
 
 
