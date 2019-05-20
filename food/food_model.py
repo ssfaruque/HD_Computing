@@ -41,9 +41,23 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     sum_hv = np.zeros(D)
 
     while end < len(absorbances) - n + 1:
-    	absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
-    	wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-    	sum_hv += (absorbance_hv * wavenum_hv)
+    	n_gram_abs = absorbances[start:end]
+    	prod_hv = np.ones(D)
+
+    	num_shifts = n - 1
+
+    	for absorbance in n_gram_abs:
+    		absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
+    		#wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
+    		tmp_hv = np.roll(absorbance_hv, num_shifts)
+    		prod_hv *= tmp_hv
+
+    		num_shifts -= 1
+
+
+    	#absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
+    	#wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
+    	sum_hv += prod_hv
     	index += 1
     	start += 1
     	end += 1
@@ -90,7 +104,7 @@ class Food_Model(hdc.HD_Model):
 				if label not in self.AM:
 					self.AM[label] = np.zeros(self.D)
 
-				ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
+				ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=5)
 				self.AM[label] += ngram_sum
 
 
@@ -98,7 +112,6 @@ class Food_Model(hdc.HD_Model):
 		for key in self.AM:
 			self.AM[key] = binarizeHV(self.AM[key], 0)
 
-		print(self.AM)
 
 
 
@@ -117,7 +130,7 @@ class Food_Model(hdc.HD_Model):
 			    absorbances = self.dataset[i][2:]
 			    absorbances = list(map(float, absorbances))
 
-			    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
+			    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=5)
 			    query_hv = binarizeHV(ngram_sum, 0)
 			    predicted = self.query(query_hv)
 			    
