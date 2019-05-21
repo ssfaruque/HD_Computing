@@ -40,6 +40,7 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
 
     sum_hv = np.zeros(D)
 
+
     while end < len(absorbances) - n + 1:
     	n_gram_abs = absorbances[start:end]
     	prod_hv = np.ones(D)
@@ -95,17 +96,17 @@ class Food_Model(hdc.HD_Model):
 		print("Beginning training...")
 
 		for i in range(0, training_set_length):
-			if "inliquidLive" in self.dataset[i][1]:
-				print("Training on file: {}".format(self.dataset[i][1]))
-				label       = int(self.dataset[i][0])
-				absorbances = self.dataset[i][2:]
-				absorbances = list(map(float, absorbances))
+			#if "inliquidHK" in self.dataset[i][1]:
+			print("Training on file: {}".format(self.dataset[i][1]))
+			label       = int(self.dataset[i][0])
+			absorbances = self.dataset[i][2:]
+			absorbances = list(map(float, absorbances))
 
-				if label not in self.AM:
-					self.AM[label] = np.zeros(self.D)
+			if label not in self.AM:
+				self.AM[label] = np.zeros(self.D)
 
-				ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=5)
-				self.AM[label] += ngram_sum
+			ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=3)
+			self.AM[label] += ngram_sum
 
 
 		# binarize the AMs
@@ -123,23 +124,23 @@ class Food_Model(hdc.HD_Model):
 		correct = 0
 
 
-		for i in range(0, marker):
-			if "inliquidLive" in self.dataset[i][1]:
-			    print("Testing on file:{}".format(self.dataset[i][1]))
-			    label       = int(self.dataset[i][0])
-			    absorbances = self.dataset[i][2:]
-			    absorbances = list(map(float, absorbances))
+		for i in range(marker, testing_set_length):
+			#if "inliquidHK" in self.dataset[i][1]:
+		    print("Testing on file:{}".format(self.dataset[i][1]))
+		    label       = int(self.dataset[i][0])
+		    absorbances = self.dataset[i][2:]
+		    absorbances = list(map(float, absorbances))
 
-			    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=5)
-			    query_hv = binarizeHV(ngram_sum, 0)
-			    predicted = self.query(query_hv)
-			    
-			    print("predicted: {}, ground truth: {}".format(predicted, label))
+		    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=3)
+		    query_hv = binarizeHV(ngram_sum, 0)
+		    predicted = self.query(query_hv)
+		    
+		    print("predicted: {}, ground truth: {}".format(predicted, label))
 
-			    if predicted == label:
-			        correct += 1
+		    if predicted == label:
+		        correct += 1
 
-			    total += 1
+		    total += 1
 
 		accuracy = correct / total
 
@@ -155,7 +156,7 @@ class Food_Model(hdc.HD_Model):
 		for i in range(0, len(self.dataset)):
 			self.dataset[i] = self.dataset[i].split(",")
 
-		#rand.shuffle(self.dataset)
+		rand.shuffle(self.dataset)
 
 
 def save(obj, file_name):
