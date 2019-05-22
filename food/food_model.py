@@ -83,7 +83,18 @@ def gen_max_hv(start_hv, D):
     return hv
 
 
-marker = 251
+def filter_dataset(dataset, name):
+	filtered_dataset = []
+
+	for row in dataset:
+		if name in row[1]:
+			filtered_dataset.append(row)
+	return filtered_dataset
+
+
+
+fraction = 0.15
+
 
 class Food_Model(hdc.HD_Model):
 	def __init__(self, D):
@@ -91,12 +102,12 @@ class Food_Model(hdc.HD_Model):
 
 	def train(self):
 		#wavenum_step = 1.928816
-		training_set_length = marker
+		dataset_length = len(self.dataset)
+		end_mark = math.floor(fraction * dataset_length)
 
 		print("Beginning training...")
 
-		for i in range(0, training_set_length):
-			#if "inliquidHK" in self.dataset[i][1]:
+		for i in range(0, end_mark):
 			print("Training on file: {}".format(self.dataset[i][1]))
 			label       = int(self.dataset[i][0])
 			absorbances = self.dataset[i][2:]
@@ -119,13 +130,14 @@ class Food_Model(hdc.HD_Model):
 	def test(self):
 		
 		print("Beginning testing...")        
-		testing_set_length = len(self.dataset)
+		dataset_length = len(self.dataset)
 		total = 0
 		correct = 0
 
+		beg_mark = math.floor(fraction * dataset_length)
 
-		for i in range(marker, testing_set_length):
-			#if "inliquidHK" in self.dataset[i][1]:
+
+		for i in range(beg_mark, dataset_length):
 		    print("Testing on file:{}".format(self.dataset[i][1]))
 		    label       = int(self.dataset[i][0])
 		    absorbances = self.dataset[i][2:]
@@ -146,8 +158,11 @@ class Food_Model(hdc.HD_Model):
 
 		print("accuracy: {}".format(accuracy))
 
+		file = open("out0_15.txt", "a")
+		file.write(str(accuracy) + "\n")
+		file.close()
 
-
+		
 
 	def load_dataset(self):
 		file = open(sys.argv[1], "r")
@@ -156,6 +171,9 @@ class Food_Model(hdc.HD_Model):
 		for i in range(0, len(self.dataset)):
 			self.dataset[i] = self.dataset[i].split(",")
 
+		#rand.shuffle(self.dataset)
+
+		self.dataset = filter_dataset(self.dataset, "inliquidHK")
 		rand.shuffle(self.dataset)
 
 
