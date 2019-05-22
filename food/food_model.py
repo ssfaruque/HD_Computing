@@ -49,8 +49,9 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
 
     	for absorbance in n_gram_abs:
     		absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
-    		#wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-    		tmp_hv = np.roll(absorbance_hv, num_shifts)
+    		wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
+    		tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+    		#tmp_hv = np.roll(absorbance_hv, num_shifts)
     		prod_hv *= tmp_hv
 
     		num_shifts -= 1
@@ -93,7 +94,7 @@ def filter_dataset(dataset, name):
 
 
 
-fraction = 0.15
+fraction = 0.70
 
 
 class Food_Model(hdc.HD_Model):
@@ -116,7 +117,7 @@ class Food_Model(hdc.HD_Model):
 			if label not in self.AM:
 				self.AM[label] = np.zeros(self.D)
 
-			ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=3)
+			ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
 			self.AM[label] += ngram_sum
 
 
@@ -143,7 +144,7 @@ class Food_Model(hdc.HD_Model):
 		    absorbances = self.dataset[i][2:]
 		    absorbances = list(map(float, absorbances))
 
-		    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=3)
+		    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
 		    query_hv = binarizeHV(ngram_sum, 0)
 		    predicted = self.query(query_hv)
 		    
@@ -158,9 +159,9 @@ class Food_Model(hdc.HD_Model):
 
 		print("accuracy: {}".format(accuracy))
 
-		file = open("out0_15.txt", "a")
-		file.write(str(accuracy) + "\n")
-		file.close()
+		#file = open("out0_15.txt", "a")
+		#file.write(str(accuracy) + "\n")
+		#file.close()
 
 		
 
