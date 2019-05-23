@@ -5,7 +5,7 @@ import numpy as np
 import math
 import pickle
 
-D = 10000
+D = 20000
 rand_indices = rand.sample(range(D), D // 2)
 
 # generate the iM corresponding to an absorbance on the fly
@@ -48,13 +48,14 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     	num_shifts = n - 1
 
     	for absorbance in n_gram_abs:
-    		absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
-    		wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-    		tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
-    		#tmp_hv = np.roll(absorbance_hv, num_shifts)
-    		prod_hv *= tmp_hv
+            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=10001)
+            wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
+            #tmp_hv = absorbance_hv * wavenum_hv
+            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+            #tmp_hv = np.roll(absorbance_hv, num_shifts)
+            prod_hv *= tmp_hv
 
-    		num_shifts -= 1
+            num_shifts -= 1
 
 
     	#absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
@@ -63,9 +64,9 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     	index += 1
     	start += 1
     	end += 1
-	
+
     return sum_hv
-	
+
 
 def binarizeHV(hv, threshold):
     for i in range(len(hv)):
@@ -94,7 +95,7 @@ def filter_dataset(dataset, name):
 
 
 
-fraction = 0.70
+fraction = 0.85
 
 
 class Food_Model(hdc.HD_Model):
@@ -120,6 +121,8 @@ class Food_Model(hdc.HD_Model):
 			ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
 			self.AM[label] += ngram_sum
 
+			print("{}% complete".format( round((i+1)*100/end_mark,2) ))
+
 
 		# binarize the AMs
 		for key in self.AM:
@@ -129,8 +132,8 @@ class Food_Model(hdc.HD_Model):
 
 
 	def test(self):
-		
-		print("Beginning testing...")        
+
+		print("Beginning testing...")
 		dataset_length = len(self.dataset)
 		total = 0
 		correct = 0
@@ -147,7 +150,7 @@ class Food_Model(hdc.HD_Model):
 		    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
 		    query_hv = binarizeHV(ngram_sum, 0)
 		    predicted = self.query(query_hv)
-		    
+
 		    print("predicted: {}, ground truth: {}".format(predicted, label))
 
 		    if predicted == label:
@@ -156,14 +159,16 @@ class Food_Model(hdc.HD_Model):
 		    total += 1
 
 		accuracy = correct / total
+		f1 = (2 * correct) / (correct + total)
 
 		print("accuracy: {}".format(accuracy))
+		print("f1 score: {}".format(f1))
 
 		#file = open("out0_15.txt", "a")
 		#file.write(str(accuracy) + "\n")
 		#file.close()
 
-		
+
 
 	def load_dataset(self):
 		file = open(sys.argv[1], "r")
@@ -199,11 +204,11 @@ def main():
 	food_model.gen_iM(["absorbance_start"], D)
 	#food_model.iM["absorbance_end"] = gen_max_hv(food_model.iM["absorbance_start"], D)
 
-	
+
 	food_model.train()
 	save(food_model, "model.bin")
 	food_model.test()
-	
+
 
 
 
