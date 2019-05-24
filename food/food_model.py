@@ -139,6 +139,13 @@ class Food_Model(hdc.HD_Model):
 
         beg_mark = math.floor(fraction * dataset_length)
 
+        self.correct_count = {}
+        self.correct_count[0] = 0
+        self.correct_count[2] = 0
+        self.correct_count[5] = 0
+        self.correct_count[10] = 0
+        self.correct_count[15] = 0
+
 
         for i in range(0, len(self.dataset)):
             if i == (self.start + 0 * self.inc) or i == (self.start + 1 * self.inc) or i == (self.start + 2 * self.inc) or i == (self.start + 3 * self.inc) or i == (self.start + 4 * self.inc):
@@ -157,6 +164,7 @@ class Food_Model(hdc.HD_Model):
 
             if predicted == label:
                 correct += 1
+                self.correct_count[predicted] += 1
                 if predicted == 0 or predicted == 2:
                     TN += 1
                 else:
@@ -190,6 +198,8 @@ class Food_Model(hdc.HD_Model):
 
             total += 1
 
+        print(self.correct_count)
+
         #print("Tested on {} samples\n".format(dataset_length - beg_mark))
         print("Tested on {} samples\n".format(len(self.testing_set)))
         accuracy = correct / total
@@ -212,7 +222,7 @@ class Food_Model(hdc.HD_Model):
             self.dataset[i] = self.dataset[i].split(",")
 
         self.dataset = filter_dataset(self.dataset, "inliquidHK")
-        rand.shuffle(self.dataset)
+        #rand.shuffle(self.dataset)
 
 
         zeros = find_labels(self.dataset, 0)
