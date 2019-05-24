@@ -86,11 +86,11 @@ def filter_dataset(dataset, name):
             filtered_dataset.append(row)
     return filtered_dataset
 
-fraction = 0.1
+fraction = 0.06
 
 def find_labels(dataset, label):
     return [row for index, row in enumerate(dataset) if int(row[0]) == label]
-    
+
 
 
 
@@ -149,8 +149,6 @@ class Food_Model(hdc.HD_Model):
             ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
             query_hv = binarizeHV(ngram_sum, 0)
             predicted = self.query(query_hv)
-
-            print("predicted: {}, ground truth: {}".format(predicted, label))
 
             print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / len(self.testing_set),2), predicted, label))
 
