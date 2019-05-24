@@ -48,18 +48,18 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
         for absorbance in n_gram_abs:
             absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            #tmp_hv = absorbance_hv * wavenum_hv
-            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+            tmp_hv = absorbance_hv * wavenum_hv
+            #tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
             #tmp_hv = np.roll(absorbance_hv, num_shifts)
             prod_hv *= tmp_hv
-
+            index += 1
             num_shifts -= 1
 
 
         #absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
         #wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
         sum_hv += prod_hv
-        index += 1
+        index -= (n - 1)
         start += 1
         end += 1
 
@@ -86,7 +86,13 @@ def filter_dataset(dataset, name):
             filtered_dataset.append(row)
     return filtered_dataset
 
-fraction = 0.67
+fraction = 0.50
+
+def find_labels(dataset, label):
+    return [row for index, row in enumerate(dataset) if int(row[0]) == label]
+    
+
+
 
 class Food_Model(hdc.HD_Model):
     def __init__(self, D):
@@ -99,10 +105,10 @@ class Food_Model(hdc.HD_Model):
 
         print("Beginning training...")
 
-        for i in range(0, end_mark):
-            print("Training on file: {}".format(self.dataset[i][1]))
-            label       = int(self.dataset[i][0])
-            absorbances = self.dataset[i][2:]
+        for i in range(0, len(self.training_set)):
+            print("Training on file: {}".format(self.training_set[i][1]))
+            label       = int(self.training_set[i][0])
+            absorbances = self.training_set[i][2:]
             absorbances = list(map(float, absorbances))
 
             if label not in self.AM:
@@ -111,9 +117,11 @@ class Food_Model(hdc.HD_Model):
             ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
             self.AM[label] += ngram_sum
 
-            print("{}% complete".format( round((i+1)*100/end_mark,2) ))
+            print("{}% complete".format( round((i+1)*100/len(self.training_set),2) ))
 
-        print("Trained on {} samples\n".format(end_mark - 0))
+        #print("Trained on {} samples\n".format(end_mark - 0))
+        print("Trained on {} samples\n".format(len(self.training_set)))
+
         # binarize the AMs
         for key in self.AM:
             self.AM[key] = binarizeHV(self.AM[key], 0)
@@ -132,17 +140,19 @@ class Food_Model(hdc.HD_Model):
         beg_mark = math.floor(fraction * dataset_length)
 
 
-        for i in range(beg_mark, dataset_length):
-            print("Testing on file:{}".format(self.dataset[i][1]))
-            label       = int(self.dataset[i][0])
-            absorbances = self.dataset[i][2:]
+        for i in range(0, len(self.testing_set)):
+            print("Testing on file:{}".format(self.testing_set[i][1]))
+            label       = int(self.testing_set[i][0])
+            absorbances = self.testing_set[i][2:]
             absorbances = list(map(float, absorbances))
 
             ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
             query_hv = binarizeHV(ngram_sum, 0)
             predicted = self.query(query_hv)
 
-            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark)*100/(dataset_length - beg_mark),2),predicted, label))
+            print("predicted: {}, ground truth: {}".format(predicted, label))
+
+            print("{}% complete\t Guess: {}\t Truth: {}".format(round(i + 1) * 100 / (len(self.testing_set)),2), predicted, label)
 
             if predicted == label:
                 correct += 1
@@ -179,7 +189,8 @@ class Food_Model(hdc.HD_Model):
 
             total += 1
 
-        print("Tested on {} samples\n".format(dataset_length - beg_mark))
+        #print("Tested on {} samples\n".format(dataset_length - beg_mark))
+        print("Tested on {} samples\n".format(len(self.testing_set)))
         accuracy = correct / total
         #precision = TP / (TP + FP)
         #recall = TP / (TP + FN)
@@ -201,6 +212,32 @@ class Food_Model(hdc.HD_Model):
 
         self.dataset = filter_dataset(self.dataset, "inliquidHK")
         rand.shuffle(self.dataset)
+
+
+        zeros = find_labels(self.dataset, 0)
+        twos = find_labels(self.dataset, 2)
+        fives = find_labels(self.dataset, 5)
+        tens = find_labels(self.dataset, 10)
+        fifteens = find_labels(self.dataset, 15)
+
+        end_mark = math.floor(fraction * (len(self.dataset) / 5))
+
+        self.training_set = []
+        self.testing_set = []
+
+        self.training_set += zeros[0 : end_mark]
+        self.training_set += twos[0 : end_mark]
+        self.training_set += fives[0 : end_mark]
+        self.training_set += tens[0 : end_mark]
+        self.training_set += fifteens[0 : end_mark]
+
+        self.testing_set += zeros[end_mark: len(zeros)]
+        self.testing_set += twos[end_mark : len(twos)]
+        self.testing_set += fives[end_mark : len(fives)]
+        self.testing_set += tens[end_mark : len(tens)]
+        self.testing_set += fifteens[end_mark : len(fifteens)]
+
+
 
 
 def save(obj, file_name):
