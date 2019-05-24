@@ -39,7 +39,7 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     sum_hv = np.zeros(D)
 
 
-    while end < len(absorbances) - n + 1:
+    while end < 100: #len(absorbances) - n + 1:
         n_gram_abs = absorbances[start:end]
         prod_hv = np.ones(D)
 
@@ -86,7 +86,7 @@ def filter_dataset(dataset, name):
             filtered_dataset.append(row)
     return filtered_dataset
 
-fraction = 0.70
+fraction = 0.75
 
 class Food_Model(hdc.HD_Model):
     def __init__(self, D):
@@ -142,7 +142,7 @@ class Food_Model(hdc.HD_Model):
             query_hv = binarizeHV(ngram_sum, 0)
             predicted = self.query(query_hv)
 
-            print("predicted: {}, ground truth: {}".format(predicted, label))
+            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark)*100/(dataset_length - beg_mark),2),predicted, label))
 
             if predicted == label:
                 correct += 1
@@ -199,7 +199,7 @@ class Food_Model(hdc.HD_Model):
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
-        self.dataset = filter_dataset(self.dataset, "inliquidHK")
+        #self.dataset = filter_dataset(self.dataset, "inliquidHK")
         rand.shuffle(self.dataset)
 
 
