@@ -199,7 +199,7 @@ class Food_Model(hdc.HD_Model):
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
-        #self.dataset = filter_dataset(self.dataset, "inliquidHK")
+        self.dataset = filter_dataset(self.dataset, "inliquidHK")
         rand.shuffle(self.dataset)
 
 
