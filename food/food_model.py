@@ -140,17 +140,20 @@ class Food_Model(hdc.HD_Model):
         beg_mark = math.floor(fraction * dataset_length)
 
 
-        for i in range(0, len(self.testing_set)):
-            print("Testing on file:{}".format(self.testing_set[i][1]))
-            label       = int(self.testing_set[i][0])
-            absorbances = self.testing_set[i][2:]
+        for i in range(0, len(self.dataset)):
+            if i == (self.start + 0 * self.inc) or i == (self.start + 1 * self.inc) or i == (self.start + 2 * self.inc) or i == (self.start + 3 * self.inc) or i == (self.start + 4 * self.inc):
+                continue
+
+            print("Testing on file:{}".format(self.dataset[i][1]))
+            label       = int(self.dataset[i][0])
+            absorbances = self.dataset[i][2:]
             absorbances = list(map(float, absorbances))
 
             ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
             query_hv = binarizeHV(ngram_sum, 0)
             predicted = self.query(query_hv)
 
-            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / len(self.testing_set),2), predicted, label))
+            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / len(self.dataset),2), predicted, label))
 
             if predicted == label:
                 correct += 1
@@ -223,17 +226,27 @@ class Food_Model(hdc.HD_Model):
         self.training_set = []
         self.testing_set = []
 
-        self.training_set += zeros[0 : end_mark]
-        self.training_set += twos[0 : end_mark]
-        self.training_set += fives[0 : end_mark]
-        self.training_set += tens[0 : end_mark]
-        self.training_set += fifteens[0 : end_mark]
+        
+        self.start = 0
+        self.inc = 18
 
-        self.testing_set += zeros[end_mark: len(zeros)]
-        self.testing_set += twos[end_mark : len(twos)]
-        self.testing_set += fives[end_mark : len(fives)]
-        self.testing_set += tens[end_mark : len(tens)]
-        self.testing_set += fifteens[end_mark : len(fifteens)]
+        self.training_set.append(self.dataset[self.start + 0 * self.inc])
+        self.training_set.append(self.dataset[self.start + 1 * self.inc])
+        self.training_set.append(self.dataset[self.start + 2 * self.inc])
+        self.training_set.append(self.dataset[self.start + 3 * self.inc])
+        self.training_set.append(self.dataset[self.start + 4 * self.inc])
+
+        #self.training_set += zeros[0 : end_mark]
+        #self.training_set += twos[0 : end_mark]
+        #self.training_set += fives[0 : end_mark]
+        #self.training_set += tens[0 : end_mark]
+        #self.training_set += fifteens[0 : end_mark]
+
+        #self.testing_set += zeros[end_mark: len(zeros)]
+        #self.testing_set += twos[end_mark : len(twos)]
+        #self.testing_set += fives[end_mark : len(fives)]
+        #self.testing_set += tens[end_mark : len(tens)]
+        #self.testing_set += fifteens[end_mark : len(fifteens)]
 
 
 
