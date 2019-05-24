@@ -4,8 +4,9 @@ import random as rand
 import numpy as np
 import math
 import pickle
+import time
 
-D = 20000
+D = 10000
 rand_indices = rand.sample(range(D), D // 2)
 
 # generate the iM corresponding to an absorbance on the fly
@@ -20,18 +21,15 @@ def calc_abs_iM(min_hv, abs_val, D, m):
 
     return hv
 
-
 def calc_wn_iM(min_hv, index, D, m):
-	num_bits_to_flip = math.floor((D / 2) / (m - 1))
-	hv = np.copy(min_hv)
+    num_bits_to_flip = math.floor((D / 2) / (m - 1))
+    hv = np.copy(min_hv)
 
-	level = index
+    level = index
 
-	hv[rand_indices[0 : (num_bits_to_flip * level)]] *= -1
+    hv[rand_indices[0 : (num_bits_to_flip * level)]] *= -1
 
-	return hv
-
-
+    return hv
 
 def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     start = 0
@@ -41,14 +39,14 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     sum_hv = np.zeros(D)
 
 
-    while end < len(absorbances) - n + 1:
-    	n_gram_abs = absorbances[start:end]
-    	prod_hv = np.ones(D)
+    while end < 10: #len(absorbances) - n + 1:
+        n_gram_abs = absorbances[start:end]
+        prod_hv = np.ones(D)
 
-    	num_shifts = n - 1
+        num_shifts = n - 1
 
-    	for absorbance in n_gram_abs:
-            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=10001)
+        for absorbance in n_gram_abs:
+            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
             #tmp_hv = absorbance_hv * wavenum_hv
             tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
@@ -58,15 +56,14 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
             num_shifts -= 1
 
 
-    	#absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
-    	#wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-    	sum_hv += prod_hv
-    	index += 1
-    	start += 1
-    	end += 1
+        #absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
+        #wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
+        sum_hv += prod_hv
+        index += 1
+        start += 1
+        end += 1
 
     return sum_hv
-
 
 def binarizeHV(hv, threshold):
     for i in range(len(hv)):
@@ -76,111 +73,133 @@ def binarizeHV(hv, threshold):
             hv[i] = -1
     return hv
 
-
-
-
 def gen_max_hv(start_hv, D):
     hv = np.copy(start_hv)
     hv[rand_indices[0 : int(D / 2)]] *= -1
     return hv
 
-
 def filter_dataset(dataset, name):
-	filtered_dataset = []
+    filtered_dataset = []
 
-	for row in dataset:
-		if name in row[1]:
-			filtered_dataset.append(row)
-	return filtered_dataset
+    for row in dataset:
+        if name in row[1]:
+            filtered_dataset.append(row)
+    return filtered_dataset
 
-
-
-fraction = 0.85
-
+fraction = 0.90
 
 class Food_Model(hdc.HD_Model):
-	def __init__(self, D):
-		hdc.HD_Model.__init__(self, D)
+    def __init__(self, D):
+        hdc.HD_Model.__init__(self, D)
 
-	def train(self):
-		#wavenum_step = 1.928816
-		dataset_length = len(self.dataset)
-		end_mark = math.floor(fraction * dataset_length)
+    def train(self):
+        #wavenum_step = 1.928816
+        dataset_length = len(self.dataset)
+        end_mark = math.floor(fraction * dataset_length)
 
-		print("Beginning training...")
+        print("Beginning training...")
 
-		for i in range(0, end_mark):
-			print("Training on file: {}".format(self.dataset[i][1]))
-			label       = int(self.dataset[i][0])
-			absorbances = self.dataset[i][2:]
-			absorbances = list(map(float, absorbances))
+        for i in range(0, end_mark):
+            print("Training on file: {}".format(self.dataset[i][1]))
+            label       = int(self.dataset[i][0])
+            absorbances = self.dataset[i][2:]
+            absorbances = list(map(float, absorbances))
 
-			if label not in self.AM:
-				self.AM[label] = np.zeros(self.D)
+            if label not in self.AM:
+                self.AM[label] = np.zeros(self.D)
 
-			ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
-			self.AM[label] += ngram_sum
+            ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
+            self.AM[label] += ngram_sum
 
-			print("{}% complete".format( round((i+1)*100/end_mark,2) ))
+            print("{}% complete".format( round((i+1)*100/end_mark,2) ))
 
+        print("Trained on {} samples\n".format(end_mark - 0))
+        # binarize the AMs
+        for key in self.AM:
+            self.AM[key] = binarizeHV(self.AM[key], 0)
 
-		# binarize the AMs
-		for key in self.AM:
-			self.AM[key] = binarizeHV(self.AM[key], 0)
+    def test(self):
 
+        print("Beginning testing...")
+        dataset_length = len(self.dataset)
+        total = 0
+        correct = 0
+        TP = 0
+        TN = 0
+        FP = 0
+        FN = 0
 
-
-
-	def test(self):
-
-		print("Beginning testing...")
-		dataset_length = len(self.dataset)
-		total = 0
-		correct = 0
-
-		beg_mark = math.floor(fraction * dataset_length)
-
-
-		for i in range(beg_mark, dataset_length):
-		    print("Testing on file:{}".format(self.dataset[i][1]))
-		    label       = int(self.dataset[i][0])
-		    absorbances = self.dataset[i][2:]
-		    absorbances = list(map(float, absorbances))
-
-		    ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
-		    query_hv = binarizeHV(ngram_sum, 0)
-		    predicted = self.query(query_hv)
-
-		    print("predicted: {}, ground truth: {}".format(predicted, label))
-
-		    if predicted == label:
-		        correct += 1
-
-		    total += 1
-
-		accuracy = correct / total
-		f1 = (2 * correct) / (correct + total)
-
-		print("accuracy: {}".format(accuracy))
-		print("f1 score: {}".format(f1))
-
-		#file = open("out0_15.txt", "a")
-		#file.write(str(accuracy) + "\n")
-		#file.close()
+        beg_mark = math.floor(fraction * dataset_length)
 
 
+        for i in range(beg_mark, dataset_length):
+            print("Testing on file:{}".format(self.dataset[i][1]))
+            label       = int(self.dataset[i][0])
+            absorbances = self.dataset[i][2:]
+            absorbances = list(map(float, absorbances))
 
-	def load_dataset(self):
-		file = open(sys.argv[1], "r")
-		self.dataset = file.read().splitlines()
-		self.dataset = self.dataset[1:]
-		for i in range(0, len(self.dataset)):
-			self.dataset[i] = self.dataset[i].split(",")
+            ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
+            query_hv = binarizeHV(ngram_sum, 0)
+            predicted = self.query(query_hv)
 
-		#rand.shuffle(self.dataset)
+            print("predicted: {}, ground truth: {}".format(predicted, label))
 
-		self.dataset = filter_dataset(self.dataset, "inliquidHK")
-		rand.shuffle(self.dataset)
+            if predicted == label:
+                correct += 1
+                if predicted == 0 or predicted == 2:
+                    TN += 1
+                else:
+                    TP += 1
+            else:
+                if predicted == 0:
+                    if label == 2:
+                        TN += 1
+                    else:
+                        FN += 1
+                elif predicted == 2:
+                    if label == 0:
+                        TN += 1
+                    else:
+                        FN += 1
+                elif predicted == 5:
+                    if label == 0 or label == 2:
+                        FP += 1
+                    else:
+                        TP += 1
+                elif predicted == 10:
+                    if label == 0 or label == 2:
+                        FP += 1
+                    else:
+                        TN += 1
+                elif predicted == 15:
+                    if label == 0 or label == 2:
+                        FP += 1
+                    else:
+                        TP += 1
+
+            total += 1
+
+        print("Tested on {} samples\n".format(dataset_length - beg_mark))
+        accuracy = correct / total
+        precision = TP / (TP + FP)
+        recall = TP / (TP + FN)
+        f1 = 2 * precision * recall / (precision + recall)
+
+        print("accuracy: {}%".format(round(accuracy * 100, 2)))
+        print("f1 score: {}".format(round(f1, 2)))
+        #file = open("out0_15.txt", "a")
+        #file.write(str(accuracy) + "\n")
+        #file.close()
+
+    def load_dataset(self):
+        file = open(sys.argv[1], "r")
+        self.dataset = file.read().splitlines()
+        self.dataset = self.dataset[1:]
+        for i in range(0, len(self.dataset)):
+            self.dataset[i] = self.dataset[i].split(",")
+
+        self.dataset = filter_dataset(self.dataset, "inliquidHK")
+        rand.shuffle(self.dataset)
 
 
 def save(obj, file_name):
@@ -197,21 +216,25 @@ def load(file_name):
 
 
 def main():
-	#D = 10000
-	food_model = Food_Model(D)
-	food_model.load_dataset()
-	food_model.gen_iM(["wavenum_start"], D)
-	food_model.gen_iM(["absorbance_start"], D)
-	#food_model.iM["absorbance_end"] = gen_max_hv(food_model.iM["absorbance_start"], D)
+    #D = 10000
+    programStartTime = time.time()
+    food_model = Food_Model(D)
+    food_model.load_dataset()
+    food_model.gen_iM(["wavenum_start"], D)
+    food_model.gen_iM(["absorbance_start"], D)
+    #food_model.iM["absorbance_end"] = gen_max_hv(food_model.iM["absorbance_start"], D)
 
 
-	food_model.train()
-	save(food_model, "model.bin")
-	food_model.test()
+    food_model.train()
+    save(food_model, "model.bin")
+    food_model.test()
+    programEndtTime = time.time()
+    print("Runtime: {} seconds".format(round(programEndtTime - programStartTime, 2)))
+
 
 
 
 
 
 if __name__ == "__main__":
-	main()
+    main()
