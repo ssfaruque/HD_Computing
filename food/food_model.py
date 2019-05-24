@@ -6,7 +6,7 @@ import math
 import pickle
 import time
 
-D = 100000
+D = 10000
 rand_indices = rand.sample(range(D), D // 2)
 
 # generate the iM corresponding to an absorbance on the fly
@@ -39,14 +39,14 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     sum_hv = np.zeros(D)
 
 
-    while end < 100: #len(absorbances) - n + 1:
+    while end < len(absorbances) - n + 1:
         n_gram_abs = absorbances[start:end]
         prod_hv = np.ones(D)
 
         num_shifts = n - 1
 
         for absorbance in n_gram_abs:
-            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=10001)
+            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
             #tmp_hv = absorbance_hv * wavenum_hv
             tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
