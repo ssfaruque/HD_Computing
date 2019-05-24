@@ -237,7 +237,7 @@ class Food_Model(hdc.HD_Model):
         self.testing_set = []
 
         
-        self.start = 0
+        self.start = 4
         self.inc = 18
 
         self.training_set.append(self.dataset[self.start + 0 * self.inc])
