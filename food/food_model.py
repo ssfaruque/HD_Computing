@@ -48,8 +48,8 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
         for absorbance in n_gram_abs:
             absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=10001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            tmp_hv = absorbance_hv * wavenum_hv
-            #tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+            #tmp_hv = absorbance_hv * wavenum_hv
+            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
             #tmp_hv = np.roll(absorbance_hv, num_shifts)
             prod_hv *= tmp_hv
 
@@ -86,7 +86,7 @@ def filter_dataset(dataset, name):
             filtered_dataset.append(row)
     return filtered_dataset
 
-fraction = 0.75
+fraction = 0.67
 
 class Food_Model(hdc.HD_Model):
     def __init__(self, D):
