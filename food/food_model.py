@@ -105,10 +105,10 @@ class Food_Model(hdc.HD_Model):
 
         print("Beginning training...")
 
-        for i in range(0, len(self.training_set)):
-            print("Training on file: {}".format(self.training_set[i][1]))
-            label       = int(self.training_set[i][0])
-            absorbances = self.training_set[i][2:]
+        for i in range(0, end_mark):
+            print("Training on file: {}".format(self.dataset[i][1]))
+            label       = int(self.dataset[i][0])
+            absorbances = self.dataset[i][2:]
             absorbances = list(map(float, absorbances))
 
             if label not in self.AM:
@@ -117,10 +117,10 @@ class Food_Model(hdc.HD_Model):
             ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
             self.AM[label] += ngram_sum
 
-            print("{}% complete".format( round((i+1)*100/len(self.training_set),2) ))
+            print("{}% complete".format( round((i+1)*100/end_mark,2) ))
 
         #print("Trained on {} samples\n".format(end_mark - 0))
-        print("Trained on {} samples\n".format(len(self.training_set)))
+        print("Trained on {} samples\n".format(end_mark))
 
         # binarize the AMs
         for key in self.AM:
@@ -147,9 +147,9 @@ class Food_Model(hdc.HD_Model):
         self.correct_count[15] = 0
 
 
-        for i in range(0, len(self.dataset)):
-            if i == (self.start + 0 * self.inc) or i == (self.start + 1 * self.inc) or i == (self.start + 2 * self.inc) or i == (self.start + 3 * self.inc) or i == (self.start + 4 * self.inc):
-                continue
+        for i in range(beg_mark, len(self.dataset)):
+            #if i == (self.start + 0 * self.inc) or i == (self.start + 1 * self.inc) or i == (self.start + 2 * self.inc) or i == (self.start + 3 * self.inc) or i == (self.start + 4 * self.inc):
+                #continue
 
             print("Testing on file:{}".format(self.dataset[i][1]))
             label       = int(self.dataset[i][0])
@@ -160,7 +160,7 @@ class Food_Model(hdc.HD_Model):
             query_hv = binarizeHV(ngram_sum, 0)
             predicted = self.query(query_hv)
 
-            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / len(self.dataset),2), predicted, label))
+            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
 
             if predicted == label:
                 correct += 1
@@ -200,8 +200,7 @@ class Food_Model(hdc.HD_Model):
 
         print(self.correct_count)
 
-        #print("Tested on {} samples\n".format(dataset_length - beg_mark))
-        print("Tested on {} samples\n".format(len(self.testing_set)))
+        print("Tested on {} samples\n".format(len(self.dataset) - beg_mark))
         accuracy = correct / total
         #precision = TP / (TP + FP)
         #recall = TP / (TP + FN)
@@ -221,10 +220,10 @@ class Food_Model(hdc.HD_Model):
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
-        self.dataset = filter_dataset(self.dataset, "inliquidHK")
+        #self.training_set = filter_dataset(self.dataset, "inliquidHK/0-12") + filter_dataset(self.dataset, "inliquidHK/2-1") + filter_dataset(self.dataset, "inliquidHK/5-11") + filter_dataset(self.dataset, "inliquidHK/10-2") + filter_dataset(self.dataset, "inliquidHK/15-2")
         #rand.shuffle(self.dataset)
 
-
+        """
         zeros = find_labels(self.dataset, 0)
         twos = find_labels(self.dataset, 2)
         fives = find_labels(self.dataset, 5)
@@ -236,8 +235,8 @@ class Food_Model(hdc.HD_Model):
         self.training_set = []
         self.testing_set = []
 
-        
-        self.start = 4
+
+        self.start = 17
         self.inc = 18
 
         self.training_set.append(self.dataset[self.start + 0 * self.inc])
@@ -245,7 +244,7 @@ class Food_Model(hdc.HD_Model):
         self.training_set.append(self.dataset[self.start + 2 * self.inc])
         self.training_set.append(self.dataset[self.start + 3 * self.inc])
         self.training_set.append(self.dataset[self.start + 4 * self.inc])
-
+        """
         #self.training_set += zeros[0 : end_mark]
         #self.training_set += twos[0 : end_mark]
         #self.training_set += fives[0 : end_mark]
