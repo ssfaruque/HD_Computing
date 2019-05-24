@@ -6,7 +6,7 @@ import math
 import pickle
 import time
 
-D = 10000
+D = 100000
 rand_indices = rand.sample(range(D), D // 2)
 
 # generate the iM corresponding to an absorbance on the fly
@@ -39,17 +39,17 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
     sum_hv = np.zeros(D)
 
 
-    while end < 10: #len(absorbances) - n + 1:
+    while end < len(absorbances) - n + 1:
         n_gram_abs = absorbances[start:end]
         prod_hv = np.ones(D)
 
         num_shifts = n - 1
 
         for absorbance in n_gram_abs:
-            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
+            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=10001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            #tmp_hv = absorbance_hv * wavenum_hv
-            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+            tmp_hv = absorbance_hv * wavenum_hv
+            #tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
             #tmp_hv = np.roll(absorbance_hv, num_shifts)
             prod_hv *= tmp_hv
 
@@ -86,7 +86,7 @@ def filter_dataset(dataset, name):
             filtered_dataset.append(row)
     return filtered_dataset
 
-fraction = 0.90
+fraction = 0.70
 
 class Food_Model(hdc.HD_Model):
     def __init__(self, D):
@@ -181,12 +181,13 @@ class Food_Model(hdc.HD_Model):
 
         print("Tested on {} samples\n".format(dataset_length - beg_mark))
         accuracy = correct / total
-        precision = TP / (TP + FP)
-        recall = TP / (TP + FN)
-        f1 = 2 * precision * recall / (precision + recall)
+        #precision = TP / (TP + FP)
+        #recall = TP / (TP + FN)
+        #f1 = 2 * precision * recall / (precision + recall)
+        f1 = 2 * TP / (2 * TP + FP + FN)
 
-        print("accuracy: {}%".format(round(accuracy * 100, 2)))
-        print("f1 score: {}".format(round(f1, 2)))
+        print("Accuracy: {}%".format(round(accuracy * 100, 2)))
+        print("F1 score: {}".format(round(f1, 2)))
         #file = open("out0_15.txt", "a")
         #file.write(str(accuracy) + "\n")
         #file.close()
@@ -226,7 +227,7 @@ def main():
 
 
     food_model.train()
-    save(food_model, "model.bin")
+    #save(food_model, "model.bin")
     food_model.test()
     programEndtTime = time.time()
     print("Runtime: {} seconds".format(round(programEndtTime - programStartTime, 2)))
