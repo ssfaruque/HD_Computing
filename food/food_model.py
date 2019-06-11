@@ -38,7 +38,6 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
 
     sum_hv = np.zeros(D)
 
-
     while end < len(absorbances) - n + 1:
         n_gram_abs = absorbances[start:end]
         prod_hv = np.ones(D)
@@ -48,16 +47,14 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
         for absorbance in n_gram_abs:
             absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            tmp_hv = absorbance_hv * wavenum_hv
-            #tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+            #tmp_hv = absorbance_hv * wavenum_hv
+            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
             #tmp_hv = np.roll(absorbance_hv, num_shifts)
             prod_hv *= tmp_hv
             index += 1
             num_shifts -= 1
 
 
-        #absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
-        #wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
         sum_hv += prod_hv
         index -= (n - 1)
         start += 1
@@ -86,12 +83,11 @@ def filter_dataset(dataset, name):
             filtered_dataset.append(row)
     return filtered_dataset
 
-fraction = 0.06
+fraction = 0.70
+
 
 def find_labels(dataset, label):
     return [row for index, row in enumerate(dataset) if int(row[0]) == label]
-
-
 
 
 class Food_Model(hdc.HD_Model):
@@ -120,7 +116,7 @@ class Food_Model(hdc.HD_Model):
             print("{}% complete".format( round((i+1)*100/end_mark,2) ))
 
         #print("Trained on {} samples\n".format(end_mark - 0))
-        print("Trained on {} samples\n".format(end_mark))
+        print("Trained on {} samples\n".format(dataset_length))
 
         # binarize the AMs
         for key in self.AM:
@@ -148,9 +144,6 @@ class Food_Model(hdc.HD_Model):
 
 
         for i in range(beg_mark, len(self.dataset)):
-            #if i == (self.start + 0 * self.inc) or i == (self.start + 1 * self.inc) or i == (self.start + 2 * self.inc) or i == (self.start + 3 * self.inc) or i == (self.start + 4 * self.inc):
-                #continue
-
             print("Testing on file:{}".format(self.dataset[i][1]))
             label       = int(self.dataset[i][0])
             absorbances = self.dataset[i][2:]
@@ -160,7 +153,8 @@ class Food_Model(hdc.HD_Model):
             query_hv = binarizeHV(ngram_sum, 0)
             predicted = self.query(query_hv)
 
-            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
+            #print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
+            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
 
             if predicted == label:
                 correct += 1
@@ -198,7 +192,6 @@ class Food_Model(hdc.HD_Model):
 
             total += 1
 
-        print(self.correct_count)
 
         print("Tested on {} samples\n".format(len(self.dataset) - beg_mark))
         accuracy = correct / total
@@ -213,6 +206,8 @@ class Food_Model(hdc.HD_Model):
         #file.write(str(accuracy) + "\n")
         #file.close()
 
+        return accuracy
+
     def load_dataset(self):
         file = open(sys.argv[1], "r")
         self.dataset = file.read().splitlines()
@@ -220,42 +215,10 @@ class Food_Model(hdc.HD_Model):
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
-        #self.training_set = filter_dataset(self.dataset, "inliquidHK/0-12") + filter_dataset(self.dataset, "inliquidHK/2-1") + filter_dataset(self.dataset, "inliquidHK/5-11") + filter_dataset(self.dataset, "inliquidHK/10-2") + filter_dataset(self.dataset, "inliquidHK/15-2")
-        #rand.shuffle(self.dataset)
-
-        """
-        zeros = find_labels(self.dataset, 0)
-        twos = find_labels(self.dataset, 2)
-        fives = find_labels(self.dataset, 5)
-        tens = find_labels(self.dataset, 10)
-        fifteens = find_labels(self.dataset, 15)
-
-        end_mark = math.floor(fraction * (len(self.dataset) / 5))
-
-        self.training_set = []
-        self.testing_set = []
+        self.dataset = filter_dataset(self.dataset, "inliquidHK")
+        rand.shuffle(self.dataset)
 
 
-        self.start = 17
-        self.inc = 18
-
-        self.training_set.append(self.dataset[self.start + 0 * self.inc])
-        self.training_set.append(self.dataset[self.start + 1 * self.inc])
-        self.training_set.append(self.dataset[self.start + 2 * self.inc])
-        self.training_set.append(self.dataset[self.start + 3 * self.inc])
-        self.training_set.append(self.dataset[self.start + 4 * self.inc])
-        """
-        #self.training_set += zeros[0 : end_mark]
-        #self.training_set += twos[0 : end_mark]
-        #self.training_set += fives[0 : end_mark]
-        #self.training_set += tens[0 : end_mark]
-        #self.training_set += fifteens[0 : end_mark]
-
-        #self.testing_set += zeros[end_mark: len(zeros)]
-        #self.testing_set += twos[end_mark : len(twos)]
-        #self.testing_set += fives[end_mark : len(fives)]
-        #self.testing_set += tens[end_mark : len(tens)]
-        #self.testing_set += fifteens[end_mark : len(fifteens)]
 
 
 
@@ -285,9 +248,11 @@ def main():
 
     food_model.train()
     #save(food_model, "model.bin")
-    food_model.test()
+    accuracy = food_model.test()
     programEndtTime = time.time()
     print("Runtime: {} seconds".format(round(programEndtTime - programStartTime, 2)))
+
+    return accuracy
 
 
 
@@ -295,4 +260,19 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    NUM_RUNS = 100
+    file = open("output_convolution_n_1.txt", "w")
+    accuracies = []
+
+    for i in range(0, NUM_RUNS):
+        print("RUN {}".format(i))
+        accuracy = main()
+        accuracies.append(accuracy)
+        file.write(str(accuracy) + "\n")
+
+
+    avg_accuracy = sum(accuracies) / len(accuracies)
+    file.write("avg_accuracy: " + str(avg_accuracy) + "\n")
+    print("avg_accuracy: {}".format(avg_accuracy))
+
+    file.close()
