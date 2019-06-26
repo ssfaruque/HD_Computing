@@ -154,7 +154,7 @@ class Food_Model(hdc.HD_Model):
             predicted = self.query(query_hv)
 
             #print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
-            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
+            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
 
             if predicted == label:
                 correct += 1
@@ -215,7 +215,7 @@ class Food_Model(hdc.HD_Model):
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
-        self.dataset = filter_dataset(self.dataset, "inliquidHK")
+        self.dataset = filter_dataset(self.dataset, "Yeast_inliquid HK")
         rand.shuffle(self.dataset)
 
 
@@ -260,8 +260,8 @@ def main():
 
 
 if __name__ == "__main__":
-    NUM_RUNS = 100
-    file = open("output_convolution_n_1.txt", "w")
+    NUM_RUNS = 10
+    file = open("output_mult_n_3.txt", "w")
     accuracies = []
 
     for i in range(0, NUM_RUNS):

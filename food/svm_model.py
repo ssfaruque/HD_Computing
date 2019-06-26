@@ -50,6 +50,8 @@ class SVM:
 
 		print("Accuracy:", accuracy)
 
+		return accuracy
+
 
 
 	def load_dataset(self):
@@ -70,10 +72,26 @@ def main():
 	svm = SVM(C=100000, fraction_split=0.7)
 	svm.load_dataset()
 	svm.train()
-	svm.test()
+	accuracy = svm.test()
+	return accuracy
 
 
 
 
 if __name__ == "__main__":
-	main()
+	NUM_RUNS = 100
+	file = open("output_svm_C_100000.txt", "w")
+	accuracies = []
+
+	for i in range(0, NUM_RUNS):
+		print("RUN {}".format(i))
+		accuracy = main()
+		accuracies.append(accuracy)
+		file.write(str(accuracy) + "\n")
+
+
+	avg_accuracy = sum(accuracies) / len(accuracies)
+	file.write("avg_accuracy: " + str(avg_accuracy) + "\n")
+	print("avg_accuracy: {}".format(avg_accuracy))
+
+	file.close()
