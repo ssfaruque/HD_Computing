@@ -83,7 +83,6 @@ def filter_dataset(dataset, name):
             filtered_dataset.append(row)
     return filtered_dataset
 
-fraction = 0.70
 
 
 def find_labels(dataset, label):
@@ -96,15 +95,14 @@ class Food_Model(hdc.HD_Model):
 
     def train(self):
         #wavenum_step = 1.928816
-        dataset_length = len(self.dataset)
-        end_mark = math.floor(fraction * dataset_length)
+        dataset_length = len(self.trainset)
 
         print("Beginning training...")
 
-        for i in range(0, end_mark):
-            print("Training on file: {}".format(self.dataset[i][1]))
-            label       = int(self.dataset[i][0])
-            absorbances = self.dataset[i][2:]
+        for i in range(0, dataset_length):
+            print("Training on file: {}".format(self.trainset[i][1]))
+            label       = int(self.trainset[i][0])
+            absorbances = self.trainset[i][2:]
             absorbances = list(map(float, absorbances))
 
             if label not in self.AM:
@@ -113,9 +111,8 @@ class Food_Model(hdc.HD_Model):
             ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
             self.AM[label] += ngram_sum
 
-            print("{}% complete".format( round((i+1)*100/end_mark,2) ))
+            print("{}% complete".format( round((i + 1) * 100 / dataset_length, 2) ))
 
-        #print("Trained on {} samples\n".format(end_mark - 0))
         print("Trained on {} samples\n".format(dataset_length))
 
         # binarize the AMs
@@ -125,15 +122,13 @@ class Food_Model(hdc.HD_Model):
     def test(self):
 
         print("Beginning testing...")
-        dataset_length = len(self.dataset)
+        dataset_length = len(self.testset)
         total = 0
         correct = 0
         TP = 0
         TN = 0
         FP = 0
         FN = 0
-
-        beg_mark = math.floor(fraction * dataset_length)
 
         self.correct_count = {}
         self.correct_count[0] = 0
@@ -143,18 +138,17 @@ class Food_Model(hdc.HD_Model):
         self.correct_count[15] = 0
 
 
-        for i in range(beg_mark, len(self.dataset)):
-            print("Testing on file:{}".format(self.dataset[i][1]))
-            label       = int(self.dataset[i][0])
-            absorbances = self.dataset[i][2:]
+        for i in range(0, dataset_length):
+            print("Testing on file:{}".format(self.testset[i][1]))
+            label       = int(self.testset[i][0])
+            absorbances = self.testset[i][2:]
             absorbances = list(map(float, absorbances))
 
             ngram_sum = gen_n_gram_sum(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D, n=1)
             query_hv = binarizeHV(ngram_sum, 0)
             predicted = self.query(query_hv)
 
-            #print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
-            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1 - beg_mark) * 100 / (len(self.dataset) - beg_mark),2), predicted, label))
+            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / dataset_length, 2), predicted, label))
 
             if predicted == label:
                 correct += 1
@@ -193,7 +187,7 @@ class Food_Model(hdc.HD_Model):
             total += 1
 
 
-        print("Tested on {} samples\n".format(len(self.dataset) - beg_mark))
+        print("Tested on {} samples\n".format(dataset_length))
         accuracy = correct / total
         #precision = TP / (TP + FP)
         #recall = TP / (TP + FN)
@@ -208,7 +202,8 @@ class Food_Model(hdc.HD_Model):
 
         return accuracy
 
-    def load_dataset(self):
+    def load_dataset(self, fraction_train):
+        self.fraction_train = fraction_train
         file = open(sys.argv[1], "r")
         self.dataset = file.read().splitlines()
         self.dataset = self.dataset[1:]
@@ -217,6 +212,10 @@ class Food_Model(hdc.HD_Model):
 
         self.dataset = filter_dataset(self.dataset, "Yeast_inliquid HK")
         rand.shuffle(self.dataset)
+
+        split_mark = math.floor(self.fraction_train * len(self.dataset))
+        self.trainset = self.dataset[0 : split_mark]
+        self.testset = self.dataset[split_mark :]
 
 
 
@@ -240,7 +239,7 @@ def main():
     #D = 10000
     programStartTime = time.time()
     food_model = Food_Model(D)
-    food_model.load_dataset()
+    food_model.load_dataset(float(sys.argv[2]))
     food_model.gen_iM(["wavenum_start"], D)
     food_model.gen_iM(["absorbance_start"], D)
     #food_model.iM["absorbance_end"] = gen_max_hv(food_model.iM["absorbance_start"], D)
@@ -260,13 +259,13 @@ def main():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python3 hdc_model.py name_of_dataset name_of_output_file")
-        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv ")
+    if len(sys.argv) != 5:
+        print("Usage: python3 hdc_model.py name_of_dataset fraction_train num_runs name_of_output_file ")
+        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv 0.7 10 output.txt")
 
     else:
-        NUM_RUNS = 10
-        file = open(sys.argv[2], "w")
+        NUM_RUNS = int(sys.argv[3])
+        file = open(sys.argv[4], "w")
         accuracies = []
 
         for i in range(0, NUM_RUNS):
@@ -278,6 +277,7 @@ if __name__ == "__main__":
 
         avg_accuracy = sum(accuracies) / len(accuracies)
         file.write("avg_accuracy: " + str(avg_accuracy) + "\n")
+        print("NUM RUNS DONE: {}".format(NUM_RUNS))
         print("avg_accuracy: {}".format(avg_accuracy))
 
         file.close()
