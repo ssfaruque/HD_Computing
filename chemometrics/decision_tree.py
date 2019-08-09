@@ -10,10 +10,10 @@ from sklearn.metrics import classification_report
 # Function importing Dataset
 def importdata():
     balance_data = pd.read_csv(
-'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/DNA_Anodisc.csv',
+#'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/DNA_Anodisc.csv',
 #'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/DNA_ECOLI.csv',
 #'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/DNA_inLiquidDNA.csv',
-#'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/Full_Set.csv',
+'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/Full_Set.csv',
 #'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/Yeast_inLiquidHK.csv',
 #'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/Yeast_inLiquidLive.csv',
     sep= ',', header = None)
