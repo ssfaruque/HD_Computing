@@ -6,6 +6,8 @@ import math
 import pickle
 import time
 
+from sklearn.preprocessing import StandardScaler
+
 D = 10000
 rand_indices = rand.sample(range(D), D // 2)
 
@@ -47,9 +49,9 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
         for absorbance in n_gram_abs:
             absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            #tmp_hv = absorbance_hv * wavenum_hv
+            tmp_hv = absorbance_hv * wavenum_hv
             #tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
-            tmp_hv = np.roll(absorbance_hv, num_shifts)
+            #tmp_hv = np.roll(absorbance_hv, num_shifts)
             prod_hv *= tmp_hv
             index += 1
             num_shifts -= 1
@@ -202,6 +204,19 @@ class Food_Model(hdc.HD_Model):
 
         return accuracy
 
+    def _standardize_dataset(self, dataset):
+        standardized_dataset = np.array(dataset)
+        meta_data = standardized_dataset[:, 0:2]
+        standardized_dataset = standardized_dataset[:, 2:]
+        standardized_dataset = standardized_dataset.astype(float)
+
+        scaler = StandardScaler()
+        scaler.fit(standardized_dataset)
+        standardized_dataset = scaler.transform(standardized_dataset)
+
+        return np.concatenate((meta_data, standardized_dataset), axis=1)
+
+
     def load_dataset(self, fraction_train):
         self.fraction_train = fraction_train
         file = open(sys.argv[1], "r")
@@ -210,8 +225,11 @@ class Food_Model(hdc.HD_Model):
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
+
         self.dataset = filter_dataset(self.dataset, "Yeast_inliquid HK")
         rand.shuffle(self.dataset)
+
+        self.dataset = self._standardize_dataset(self.dataset)
 
         split_mark = math.floor(self.fraction_train * len(self.dataset))
         self.trainset = self.dataset[0 : split_mark]
