@@ -10,12 +10,13 @@ from sklearn.metrics import classification_report
 # Function importing Dataset
 def importdata():
     balance_data = pd.read_csv(
-#'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/DNA_Anodisc.csv',
-#'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/DNA_ECOLI.csv',
-#'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/DNA_inLiquidDNA.csv',
-'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/Full_Set.csv',
-#'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/Yeast_inLiquidHK.csv',
-#'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/Yeast_inLiquidLive.csv',
+'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/'+
+#'DNA_Anodisc.csv',
+#'DNA_ECOLI.csv',
+#'DNA_inLiquidDNA.csv',
+'Full_Set.csv',
+#'Yeast_inLiquidHK.csv',
+#'Yeast_inLiquidLive.csv',
     sep= ',', header = None)
 
     # Printing the dataswet shape
@@ -30,12 +31,12 @@ def importdata():
 def splitdataset(balance_data):
 
     # Seperating the target variable
-    X = balance_data.values[:, 1:1608]
+    X = balance_data.values[:, 1:1608] #min = 1, max = 1868
     Y = balance_data.values[:, 0]
 
     # Spliting the dataset into train and test
     X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size = 0.3, random_state = 51)
+    X, Y, test_size = 0.3, random_state = 51, shuffle = True, stratify = None)
 
     return X, Y, X_train, X_test, y_train, y_test
 
@@ -44,14 +45,14 @@ def train_using_gini(X_train, X_test, y_train):
 
     # Creating the classifier object
     clf_gini = DecisionTreeClassifier(criterion = "gini",
-            random_state = 51,max_depth=100, min_samples_leaf=1)
+            random_state = 51,max_depth=100, min_samples_leaf = 1)
 
     # Performing training
     clf_gini.fit(X_train, y_train)
     return clf_gini
 
 # Function to perform training with entropy.
-def tarin_using_entropy(X_train, X_test, y_train):
+def train_using_entropy(X_train, X_test, y_train):
 
     # Decision tree with entropy
     clf_entropy = DecisionTreeClassifier(
@@ -81,7 +82,7 @@ def cal_accuracy(y_test, y_pred):
     print ("Accuracy : ",
     accuracy_score(y_test,y_pred)*100)
 
-    print("Report : ",
+    print("Report : \n",
     classification_report(y_test, y_pred))
 
 # Driver code
@@ -91,7 +92,7 @@ def main():
     data = importdata()
     X, Y, X_train, X_test, y_train, y_test = splitdataset(data)
     clf_gini = train_using_gini(X_train, X_test, y_train)
-    clf_entropy = tarin_using_entropy(X_train, X_test, y_train)
+    clf_entropy = train_using_entropy(X_train, X_test, y_train)
 
     # Operational Phase
     print("Results Using Gini Index:")
