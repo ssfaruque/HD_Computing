@@ -49,8 +49,8 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
         for absorbance in n_gram_abs:
             absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            tmp_hv = absorbance_hv * wavenum_hv
-            #tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+            #tmp_hv = absorbance_hv * wavenum_hv
+            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
             #tmp_hv = np.roll(absorbance_hv, num_shifts)
             prod_hv *= tmp_hv
             index += 1
@@ -202,7 +202,7 @@ class Food_Model(hdc.HD_Model):
         #file.write(str(accuracy) + "\n")
         #file.close()
 
-        return accuracy
+        return accuracy, f1
 
     def _standardize_dataset(self, dataset):
         standardized_dataset = np.array(dataset)
@@ -212,7 +212,7 @@ class Food_Model(hdc.HD_Model):
 
         scaler = StandardScaler()
         scaler.fit(standardized_dataset)
-        standardized_dataset = scaler.transform(standardized_dataset)
+        #standardized_dataset = scaler.transform(standardized_dataset)
 
         return np.concatenate((meta_data, standardized_dataset), axis=1)
 
@@ -226,7 +226,7 @@ class Food_Model(hdc.HD_Model):
             self.dataset[i] = self.dataset[i].split(",")
 
 
-        self.dataset = filter_dataset(self.dataset, "Yeast_inliquid HK")
+        self.dataset = filter_dataset(self.dataset, "Yeast_inliquid Live")
         rand.shuffle(self.dataset)
 
         self.dataset = self._standardize_dataset(self.dataset)
@@ -285,17 +285,23 @@ if __name__ == "__main__":
         NUM_RUNS = int(sys.argv[3])
         file = open(sys.argv[4], "w")
         accuracies = []
+        f1s = []
 
         for i in range(0, NUM_RUNS):
             print("RUN {}".format(i))
-            accuracy = main()
+            accuracy, f1 = main()
             accuracies.append(accuracy)
+            f1s.append(f1)
             file.write(str(accuracy) + "\n")
+            file.write(str(f1) + "\n")
 
 
         avg_accuracy = sum(accuracies) / len(accuracies)
-        file.write("avg_accuracy: " + str(avg_accuracy) + "\n")
-        print("NUM RUNS DONE: {}".format(NUM_RUNS))
-        print("avg_accuracy: {}".format(avg_accuracy))
+        avg_f1 = sum(f1s) / len(f1s)
+        file.write("Average Accuracy: " + str(avg_accuracy) + "\n")
+        file.write("Average F1: " + str(avg_f1) + "\n")
+        print("Num Runs Done: {}".format(NUM_RUNS))
+        print("Average Accuracy: {}".format(avg_accuracy))
+        print("Average F1: {}".format(avg_f1))
 
         file.close()
