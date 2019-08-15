@@ -302,6 +302,6 @@ if __name__ == "__main__":
         file.write("Average F1: " + str(avg_f1) + "\n")
         print("Num Runs Done: {}".format(NUM_RUNS))
         print("Average Accuracy: {}".format(avg_accuracy))
-        print("Average F1: {}".format(avg_f1))
+        print("Average F1: {}".format(round(avg_f1, 2)))
 
         file.close()
