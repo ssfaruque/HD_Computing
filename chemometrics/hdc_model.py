@@ -12,9 +12,9 @@ D = 10000
 rand_indices = rand.sample(range(D), D // 2)
 
 # generate the iM corresponding to an absorbance on the fly
-threshold = 0.05
+threshold = 0.07
 def calc_abs_iM(min_hv, abs_val, D, m):
-    if abs_val < threshold:
+    if  abs_val < threshold:
         return np.zeros(D)
     num_bits_to_flip = math.floor((D / 2) / (m - 1))
     hv = np.copy(min_hv)
@@ -52,8 +52,8 @@ def gen_n_gram_sum(absorbances, min_abs_hv, min_wn_hv, D, n):
         for absorbance in n_gram_abs:
             absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
             wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            #tmp_hv = absorbance_hv * wavenum_hv
-            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+            tmp_hv = absorbance_hv * wavenum_hv
+            #tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
             #tmp_hv = np.roll(absorbance_hv, num_shifts)
             prod_hv *= tmp_hv
             index += 1
@@ -215,7 +215,7 @@ class Food_Model(hdc.HD_Model):
 
         scaler = StandardScaler()
         scaler.fit(standardized_dataset)
-        #standardized_dataset = scaler.transform(standardized_dataset)
+        standardized_dataset = scaler.transform(standardized_dataset)
 
         return np.concatenate((meta_data, standardized_dataset), axis=1)
 
@@ -232,7 +232,7 @@ class Food_Model(hdc.HD_Model):
         self.dataset = filter_dataset(self.dataset, "Yeast_inliquid Live")
         rand.shuffle(self.dataset)
 
-        self.dataset = self._standardize_dataset(self.dataset)
+        #self.dataset = self._standardize_dataset(self.dataset)
 
         split_mark = math.floor(self.fraction_train * len(self.dataset))
         self.trainset = self.dataset[0 : split_mark]
@@ -268,11 +268,11 @@ def main():
 
     food_model.train()
     #save(food_model, "model.bin")
-    accuracy = food_model.test()
+    accuracy = food_model.test() #accuracy holds accuracy and F1 both
     programEndtTime = time.time()
     print("Runtime: {} seconds".format(round(programEndtTime - programStartTime, 2)))
 
-    return accuracy
+    return accuracy #accuracy holds accuracy and F1 both
 
 
 
@@ -290,6 +290,7 @@ if __name__ == "__main__":
         accuracies = []
         f1s = []
 
+        TotalRunStart = time.time();
         for i in range(0, NUM_RUNS):
             print("RUN {}".format(i))
             accuracy, f1 = main()
@@ -297,7 +298,7 @@ if __name__ == "__main__":
             f1s.append(f1)
             file.write(str(accuracy) + "\n")
             file.write(str(f1) + "\n")
-
+        TotalRunEnd = time.time();
 
         avg_accuracy = sum(accuracies) / len(accuracies)
         avg_f1 = sum(f1s) / len(f1s)
@@ -306,5 +307,6 @@ if __name__ == "__main__":
         print("Num Runs Done: {}".format(NUM_RUNS))
         print("Average Accuracy: {}".format(avg_accuracy))
         print("Average F1: {}".format(round(avg_f1, 2)))
+        print("Total Runtime: {} seconds".format(round(TotalRunEnd - TotalRunStart, 2)))
 
         file.close()
