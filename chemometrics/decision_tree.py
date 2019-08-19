@@ -11,12 +11,18 @@ from sklearn.metrics import classification_report
 def importdata():
     balance_data = pd.read_csv(
 'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/'+
-#'DNA_Anodisc.csv',
+#'noisySets/DT_noisy_'+
+#'01_'+
+#'02_'+
+#'03_'+
+'DNA_Anodisc.csv',
 #'DNA_ECOLI.csv',
 #'DNA_inLiquidDNA.csv',
-'Full_Set.csv',
+#'Full_Set.csv',
 #'Yeast_inLiquidHK.csv',
 #'Yeast_inLiquidLive.csv',
+
+
     sep= ',', header = None)
 
     # Printing the dataswet shape
@@ -36,7 +42,7 @@ def splitdataset(balance_data):
 
     # Spliting the dataset into train and test
     X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size = 0.3, random_state = 51, shuffle = True, stratify = None)
+    X, Y, test_size = 0.25, random_state = 51, shuffle = True, stratify = None)
 
     return X, Y, X_train, X_test, y_train, y_test
 
