@@ -34,7 +34,7 @@ def importdata():
 def splitdataset(balance_data):
 
     # Seperating the target variable
-    X = balance_data.values[:, 1:1608] #min = 1, max = 1868
+    X = balance_data.values[:, 1:1868] #min = 1, max = 1868
     Y = balance_data.values[:, 0]
 
     # Spliting the dataset into train and test
@@ -65,14 +65,13 @@ def cal_accuracy(y_test, y_pred):
 # Driver code
 def main():
 
-    # Building Phase
+    #Training Phase
     data = importdata()
     X, Y, X_train, X_test, y_train, y_test = splitdataset(data)
 
-    # Operational Phase
-    print("Results:")
-    # Prediction using entropy
+    #Testing Phase
     y_pred = GradientBoost(X_train, X_test, y_train)
+    print("Results:")
     cal_accuracy(y_test, y_pred)
 
 
