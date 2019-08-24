@@ -39,13 +39,13 @@ def splitdataset(balance_data):
 
     # Spliting the dataset into train and test
     X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size = 0.25, random_state = 51, shuffle = True, stratify = None)
+    X, Y, test_size = 0.3, random_state = 51, shuffle = True, stratify = None)
 
     return X, Y, X_train, X_test, y_train, y_test
 
 def GradientBoost(X_train, X_test, y_train):
 
-    model = CatBoostClassifier()
+    model = CatBoostClassifier(iterations=10, depth=5)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
 
@@ -71,7 +71,6 @@ def main():
 
     #Testing Phase
     y_pred = GradientBoost(X_train, X_test, y_train)
-    print("Results:")
     cal_accuracy(y_test, y_pred)
 
 
