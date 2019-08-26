@@ -68,6 +68,28 @@ def gen_n_gram_sum(text, iM, D, n):
     return sum_hv
 
 
+def _cos_angle(hv1, hv2):
+    return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
+
+
+def query(AM, query_hv, print_all=False):
+    label = None
+    maxAngle = -1
+
+    for key in AM:
+        similarity = _cos_angle(AM[key], query_hv)
+        if  similarity > maxAngle:
+            maxAngle = similarity
+            label = key
+
+        if print_all:
+            print(key, ":", similarity)
+
+    if print_all:
+        print()
+
+    return label
+
 
 class HD_Model(ABC):
     def __init__(self, D=10000):
@@ -91,7 +113,7 @@ class HD_Model(ABC):
 
     def _cos_angle(self, hv1, hv2):
         return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
-        
+
 
     def query(self, query_hv, print_all=False):
         label = None
@@ -168,7 +190,7 @@ def func(D):
     B = binarizeHV(A + hv[1000], 0)
     C = binarizeHV(A + hv[1001], 0)
 
-    similarity = cos_angle(B, C) 
+    similarity = cos_angle(B, C)
 
     print(similarity)
 
