@@ -406,8 +406,8 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) != 7:
-        print("Usage: python3 hdc_model.py name_of_dataset category scheme fraction_train num_runs name_of_output_file ")
-        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv ECOLI multiplication 0.7 10 output.txt")
+        print("Usage: python3 hdc_model.py name_of_dataset category scheme num_sets num_runs name_of_output_file ")
+        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI multiplication 4 10 output.txt")
 
     else:
         NUM_RUNS = int(sys.argv[5])
