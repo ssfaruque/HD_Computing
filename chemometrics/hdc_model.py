@@ -347,7 +347,7 @@ class Food_Model(hdc.HD_Model):
             self.dataset[i] = self.dataset[i].split(",")
 
         self.dataset = self._filter_dataset(self.dataset, sys.argv[2])
-        rand.shuffle(self.dataset)
+        np.random.shuffle(self.dataset)
 
         #split_mark = math.floor(self.fraction_train * len(self.dataset))
         #self.trainset = self.dataset[0 : split_mark]

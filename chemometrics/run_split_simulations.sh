@@ -7,7 +7,7 @@ mkdir -p $output_dir
 
 categories=( "DNA_ECOLI" "Yeast_inliquid HK" "DNA_INLIQUIDDNA" "DNA_DNA@Anod" "Yeast_inliquid Live" )
 encoding_schemes=( "multiplication" "trigram" "convolution" )
-splits=( 2 3 4 )
+splits=( 2 3 4 5 )
 
 for category in "${categories[@]}"
 do
