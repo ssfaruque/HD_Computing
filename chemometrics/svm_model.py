@@ -181,11 +181,13 @@ if __name__ == "__main__":
 
 	avg_accuracy = stats.mean(accuracies)
 	avg_f1 = stats.mean(f1s)
+	std_accuracy = stats.stdev(accuracies, xbar=avg_accuracy)
+	std_f1 = stats.stdev(f1s, xbar=avg_f1)
 
-	file.write("avg_accuracy: " + str(avg_accuracy) + "\n")
-	file.write("avg_f1: " + str(avg_f1) + "\n")
+	file.write("avg_accuracy: " + str(avg_accuracy) + " +- " + str(std_accuracy) + "\n")
+	file.write("avg_f1: " + str(avg_f1) + " +- "  + str(std_f1) + "\n")
 
-	print("avg_accuracy: {}".format(avg_accuracy))
-	print("avg_f1: {}".format(avg_f1))
+	print("Average Accuracy: {}% +- {}%".format(round(avg_accuracy * 100, 2), round(std_accuracy * 100, 2)))
+	print("Average F1: {} +- {}".format(round(avg_f1, 2), round(std_f1, 2)))
 
 	file.close()
