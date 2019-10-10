@@ -6,7 +6,7 @@ num_runs=10
 mkdir -p $output_dir
 
 categories=( "DNA_ECOLI" "Yeast_inliquid HK" "DNA_INLIQUIDDNA" "DNA_DNA@Anod" "Yeast_inliquid Live" )
-noise_levels=( 1 2 3 )
+noise_levels=( "05" "15" )
 
 for category in "${categories[@]}"
 do

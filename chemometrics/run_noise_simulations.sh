@@ -7,8 +7,8 @@ mkdir -p $output_dir
 
 categories=( "DNA_ECOLI" "Yeast_inliquid HK" "DNA_INLIQUIDDNA" "DNA_DNA@Anod" "Yeast_inliquid Live" )
 #encoding_schemes=( "multiplication" "trigram" "convolution" )
-encoding_schemes=( "multiplication" "trigram" )
-noise_levels=( 1 2 3 )
+encoding_schemes=( "multiplication" "trigram" "convolution" )
+noise_levels=( "05" "15" )
 
 for category in "${categories[@]}"
 do
