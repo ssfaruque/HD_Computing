@@ -349,9 +349,9 @@ class Food_Model(hdc.HD_Model):
         self.dataset = self._filter_dataset(self.dataset, sys.argv[2])
         np.random.shuffle(self.dataset)
 
-        #split_mark = math.floor(self.fraction_train * len(self.dataset))
-        #self.trainset = self.dataset[0 : split_mark]
-        #self.testset = self.dataset[split_mark :]
+        split_mark = math.floor(self.fraction_train * len(self.dataset))
+        self.trainset = self.dataset[0 : split_mark]
+        self.testset = self.dataset[split_mark :]
 
     def update_train_and_test_sets(self, training_indices, testing_indices):
         self.trainset = self.dataset[training_indices]
@@ -382,21 +382,11 @@ def main():
 
     accuracies = []
     f1s = []
-    num_splits = int(sys.argv[4])
+    food_model.train()
+    accuracy, f1 = food_model.test()
 
-    kf = KFold(n_splits=num_splits)
-    split_num = 1
-
-    for training_indices, testing_indices in kf.split(food_model.dataset):
-        print("Split {}/{}".format(split_num, num_splits))
-        food_model.update_train_and_test_sets(training_indices, testing_indices)
-        food_model.train()
-        accuracy, f1 = food_model.test()
-
-        accuracies.append(accuracy)
-        f1s.append(f1)
-
-        split_num += 1
+    accuracies.append(accuracy)
+    f1s.append(f1)
 
     programEndtTime = time.time()
     print("Runtime: {} seconds".format(round(programEndtTime - programStartTime, 2)))
@@ -406,8 +396,8 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) != 7:
-        print("Usage: python3 hdc_model.py name_of_dataset category scheme num_sets num_runs name_of_output_file ")
-        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI multiplication 4 10 output.txt")
+        print("Usage: python3 hdc_model.py name_of_dataset category scheme training_fraction num_runs name_of_output_file ")
+        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI multiplication 0.25 10 output.txt")
 
     else:
         NUM_RUNS = int(sys.argv[5])
