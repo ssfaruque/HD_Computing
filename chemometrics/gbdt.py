@@ -11,7 +11,9 @@ from catboost import CatBoostClassifier
 def importdata():
     balance_data = pd.read_csv(
 'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/'+
+#'noisySets/DT_noisy_005_'+
 #'noisySets/DT_noisy_01_'+
+#'noisySets/DT_noisy_015_'+
 #'noisySets/DT_noisy_02_'+
 #'noisySets/DT_noisy_03_'+
 #'DNA_Anodisc.csv',

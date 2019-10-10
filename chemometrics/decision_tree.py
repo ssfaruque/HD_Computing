@@ -11,18 +11,17 @@ from sklearn.metrics import classification_report
 def importdata():
     balance_data = pd.read_csv(
 'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/'+
-#'noisySets/DT_noisy_'+
-#'01_'+
-#'02_'+
-#'03_'+
+#'noisySets/DT_noisy_005_'+
+#'noisySets/DT_noisy_01_'+
+#'noisySets/DT_noisy_015_'+
+#'noisySets/DT_noisy_02_'+
+#'noisySets/DT_noisy_03_'+
 'DNA_Anodisc.csv',
 #'DNA_ECOLI.csv',
 #'DNA_inLiquidDNA.csv',
 #'Full_Set.csv',
 #'Yeast_inLiquidHK.csv',
 #'Yeast_inLiquidLive.csv',
-
-
     sep= ',', header = None)
 
     # Printing the dataswet shape
@@ -88,8 +87,7 @@ def cal_accuracy(y_test, y_pred):
     print ("Accuracy : ",
     accuracy_score(y_test,y_pred)*100)
 
-    print("Report : \n",
-    classification_report(y_test, y_pred))
+    print("Report : \n", classification_report(y_test, y_pred))
 
 # Driver code
 def main():
@@ -111,6 +109,8 @@ def main():
     # Prediction using entropy
     y_pred_entropy = prediction(X_test, clf_entropy)
     cal_accuracy(y_test, y_pred_entropy)
+    report = classification_report(y_test, y_pred_entropy, output_dict = True)
+    print("Test F1: {}".format(report["weighted avg"]["f1-score"]))
 
 
 # Calling main function
