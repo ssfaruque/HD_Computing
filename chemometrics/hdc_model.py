@@ -349,13 +349,42 @@ class Food_Model(hdc.HD_Model):
         self.dataset = self._filter_dataset(self.dataset, sys.argv[2])
         np.random.shuffle(self.dataset)
 
-        split_mark = math.floor(self.fraction_train * len(self.dataset))
-        self.trainset = self.dataset[0 : split_mark]
-        self.testset = self.dataset[split_mark :]
+        self.split_train_and_test()
 
-    def update_train_and_test_sets(self, training_indices, testing_indices):
-        self.trainset = self.dataset[training_indices]
-        self.testset = self.dataset[testing_indices]
+
+    def retrieve_indices_of_label(self, label):
+        indices = []
+        for i in range(0, len(self.dataset)):
+            if int(self.dataset[i][0]) == label:
+                indices.append(i)
+        return indices
+
+    def retrieve_indices_of_all_labels(self):
+        self.ppm0 = self.retrieve_indices_of_label(0)
+        self.ppm2 = self.retrieve_indices_of_label(2)
+        self.ppm5 = self.retrieve_indices_of_label(5)
+        self.ppm10 = self.retrieve_indices_of_label(10)
+        self.ppm15 = self.retrieve_indices_of_label(15)
+
+    def split_train_and_test(self):
+        self.retrieve_indices_of_all_labels()
+        num_files_per_category = int(sys.argv[4])
+
+        ppm0_indices = self.ppm0[0 : num_files_per_category]
+        ppm2_indices = self.ppm2[0 : num_files_per_category]
+        ppm5_indices = self.ppm5[0 : num_files_per_category]
+        ppm10_indices = self.ppm10[0 : num_files_per_category]
+        ppm15_indices = self.ppm15[0 : num_files_per_category]
+
+        ppm0_samples = np.copy(self.dataset[ppm0_indices])
+        ppm2_samples = np.copy(self.dataset[ppm2_indices])
+        ppm5_samples = np.copy(self.dataset[ppm5_indices])
+        ppm10_samples = np.copy(self.dataset[ppm10_indices])
+        ppm15_samples = np.copy(self.dataset[ppm15_indices])
+
+        self.trainset = np.concatenate((ppm0_samples, ppm2_samples, ppm5_samples, ppm10_samples, ppm15_samples))
+        self.testset = np.delete(self.dataset, (ppm0_indices + ppm2_indices + ppm5_indices + ppm10_indices + ppm15_indices), axis=0)
+
 
 
 def save(obj, file_name):
@@ -380,24 +409,19 @@ def main():
     Food_Model.wavenum_start = food_model.iM["wavenum_start"]
     Food_Model.absorbance_start = food_model.iM["absorbance_start"]
 
-    accuracies = []
-    f1s = []
     food_model.train()
     accuracy, f1 = food_model.test()
-
-    accuracies.append(accuracy)
-    f1s.append(f1)
 
     programEndtTime = time.time()
     print("Runtime: {} seconds".format(round(programEndtTime - programStartTime, 2)))
 
-    return stats.mean(accuracies), stats.mean(f1s)
+    return accuracy, f1
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 7:
-        print("Usage: python3 hdc_model.py name_of_dataset category scheme training_fraction num_runs name_of_output_file ")
-        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI multiplication 0.25 10 output.txt")
+        print("Usage: python3 hdc_model.py name_of_dataset category scheme num_files_per_category num_runs name_of_output_file ")
+        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI multiplication 2 10 output.txt")
 
     else:
         NUM_RUNS = int(sys.argv[5])

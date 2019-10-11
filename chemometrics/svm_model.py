@@ -37,6 +37,7 @@ class SVM:
 
 	def train(self):
 		self.model.fit(self.trainset[:, 2:], self.trainset[:, 0])
+		print("Trained on " + str(len(self.trainset)) + " samples")
 
 	def test(self):
 		total = 0
@@ -94,6 +95,7 @@ class SVM:
 		accuracy = correct / total
 		f1 = 2 * f1_results["TP"] / (2 * f1_results["TP"] + f1_results["FP"] + f1_results["FN"])
 
+		print("Tested on " + str(len(self.testset)) + " samples")
 		print("Accuracy:", accuracy)
 		print("F1 Score", f1)
 
@@ -112,10 +114,7 @@ class SVM:
 		np.random.shuffle(self.dataset)
 		self.dataset = np.array(self.dataset)
 		self.threshold_dataset()
-		split_mark = math.floor(fraction_train * len(self.dataset))
-		self.trainset = self.dataset[0 : split_mark]
-		self.testset = self.dataset[split_mark :]
-
+		self.split_train_and_test()
 
 
 	def threshold_dataset(self):
@@ -125,6 +124,41 @@ class SVM:
 			for j in range(2, len(self.dataset[0])):
 				if float(self.dataset[i][j]) < threshold:
 					self.dataset[i][j] = 0
+
+
+	def retrieve_indices_of_label(self, label):
+		indices = []
+		for i in range(0, len(self.dataset)):
+			if int(self.dataset[i][0]) == label:
+				indices.append(i)
+				return indices
+
+	def retrieve_indices_of_all_labels(self):
+		self.ppm0 = self.retrieve_indices_of_label(0)
+		self.ppm2 = self.retrieve_indices_of_label(2)
+		self.ppm5 = self.retrieve_indices_of_label(5)
+		self.ppm10 = self.retrieve_indices_of_label(10)
+		self.ppm15 = self.retrieve_indices_of_label(15)
+
+	def split_train_and_test(self):
+		self.retrieve_indices_of_all_labels()
+		num_files_per_category = int(sys.argv[2])
+
+		ppm0_indices = self.ppm0[0 : num_files_per_category]
+		ppm2_indices = self.ppm2[0 : num_files_per_category]
+		ppm5_indices = self.ppm5[0 : num_files_per_category]
+		ppm10_indices = self.ppm10[0 : num_files_per_category]
+		ppm15_indices = self.ppm15[0 : num_files_per_category]
+
+		ppm0_samples = np.copy(self.dataset[ppm0_indices])
+		ppm2_samples = np.copy(self.dataset[ppm2_indices])
+		ppm5_samples = np.copy(self.dataset[ppm5_indices])
+		ppm10_samples = np.copy(self.dataset[ppm10_indices])
+		ppm15_samples = np.copy(self.dataset[ppm15_indices])
+
+		self.trainset = np.concatenate((ppm0_samples, ppm2_samples, ppm5_samples, ppm10_samples, ppm15_samples))
+		self.testset = np.delete(self.dataset, (ppm0_indices + ppm2_indices + ppm5_indices + ppm10_indices + ppm15_indices), axis=0)
+
 
 
 def main():
@@ -142,7 +176,7 @@ def main():
 if __name__ == "__main__":
 
 	if len(sys.argv) != 5:
-		print("Usage: python3 svm_model.py dataset fraction_train category output_file")
+		print("Usage: python3 svm_model.py dataset num_files_per_category category output_file")
 		exit()
 
 	NUM_RUNS = 10
