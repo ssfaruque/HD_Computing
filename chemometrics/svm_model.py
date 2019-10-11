@@ -39,7 +39,6 @@ class SVM:
 		self.model.fit(self.trainset[:, 2:], self.trainset[:, 0])
 
 	def test(self):
-		beg_mark = math.floor(self.fraction_split * len(self.dataset))
 		total = 0
 		correct = 0
 		f1_results = {}
@@ -101,7 +100,7 @@ class SVM:
 		return accuracy, f1
 
 
-	def load_dataset(self):
+	def load_dataset(self, fraction_train):
 		file = open(sys.argv[1], "r")
 		self.dataset = file.read().splitlines()
 		self.dataset = self.dataset[1:]
@@ -110,9 +109,13 @@ class SVM:
 
 		category = sys.argv[3]
 		self.dataset = filter_dataset(self.dataset, category)
-		rand.shuffle(self.dataset)
+		np.random.shuffle(self.dataset)
 		self.dataset = np.array(self.dataset)
 		self.threshold_dataset()
+		split_mark = math.floor(fraction_train * len(self.dataset))
+		self.trainset = self.dataset[0 : split_mark]
+		self.testset = self.dataset[split_mark :]
+
 
 
 	def threshold_dataset(self):
@@ -124,46 +127,22 @@ class SVM:
 					self.dataset[i][j] = 0
 
 
-
-
-
-	def update_train_and_test_sets(self, training_indices, testing_indices):
-		self.trainset = self.dataset[training_indices]
-		self.testset = self.dataset[testing_indices]
-
-
 def main():
 	svm = SVM(C=100000, fraction_split=0.7)
-	svm.load_dataset()
 
-	accuracies = []
-	f1s = []
-	num_splits = int(sys.argv[2])
+	fraction_train = float(sys.argv[2])
+	svm.load_dataset(fraction_train)
+	svm.train()
+	accuracy, f1 = svm.test()
 
-	kf = KFold(n_splits=num_splits)
-	split_num = 1
-
-
-	for training_indices, testing_indices in kf.split(svm.dataset):
-		print("Split {}/{}".format(split_num, num_splits))
-		svm.update_train_and_test_sets(training_indices, testing_indices)
-		svm.train()
-		accuracy, f1 = svm.test()
-
-		accuracies.append(accuracy)
-		f1s.append(f1)
-
-		split_num += 1
-
-	return stats.mean(accuracies), stats.mean(f1s)
-
+	return accuracy, f1
 
 
 
 if __name__ == "__main__":
 
 	if len(sys.argv) != 5:
-		print("Usage: python3 svm_model.py dataset num_splits category output_file")
+		print("Usage: python3 svm_model.py dataset fraction_train category output_file")
 		exit()
 
 	NUM_RUNS = 10
