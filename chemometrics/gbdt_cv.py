@@ -13,11 +13,22 @@ import statistics
 def importdata():
     balance_data = pd.read_csv(
 'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/'+
+#
+#select only one from below
 #'noisySets/DT_noisy_005_'+
 #'noisySets/DT_noisy_01_'+
 #'noisySets/DT_noisy_015_'+
 #'noisySets/DT_noisy_02_'+
 #'noisySets/DT_noisy_03_'+
+#'noisySets/DT_multiplicative_075_'
+#'noisySets/DT_multiplicative_090_'
+#'noisySets/DT_multiplicative_110_'
+#'noisySets/DT_multiplicative_125_'
+#'noisySets/DT_additive_025_'
+#'noisySets/DT_additive_050_'
+#'noisySets/DT_additive_100_'
+#
+#select only one from below
 #'DNA_Anodisc.csv',
 #'DNA_ECOLI.csv',
 'DNA_inLiquidDNA.csv',
@@ -84,7 +95,7 @@ def main():
 
     predicted_accuracy = []
     predicted_f1 = []
-    num_splits = 2
+    num_splits = 4
 
     for i in range(10):
         print("RUN {}".format(i+1))
@@ -105,8 +116,48 @@ def main():
             y_pred = GradientBoost(trainset[:, 1:1868], testset[:, 1:1868], trainset[:, 0])
             #y_pred_entropy = prediction(testset[:, 1:1868], clf_entropy)
             # cal_accuracy(testset[:, 0], y_pred_entropy)
-            report = classification_report(testset[:, 0], y_pred, output_dict = True)
-            F1 = report["weighted avg"]["f1-score"]
+            #report = classification_report(testset[:, 0], y_pred, output_dict = True)
+            #F1 = report["weighted avg"]["f1-score"]
+            TN = 0
+            TP = 0
+            FN = 0
+            FP = 0
+            for i in range(0,len(testset[:, 0])):
+                predicted = y_pred[i]
+                label = testset[i, 0]
+
+                if predicted == label:
+                    if predicted == 0 or predicted == 2:
+                        TN += 1
+                    else:
+                        TP += 1
+                else:
+                    if predicted == 0:
+                        if label == 2:
+                            TN += 1
+                        else:
+                            FN += 1
+                    elif predicted == 2:
+                        if label == 0:
+                            TN += 1
+                        else:
+                            FN += 1
+                    elif predicted == 5:
+                        if label == 0 or label == 2:
+                            FP += 1
+                        else:
+                            TP += 1
+                    elif predicted == 10:
+                        if label == 0 or label == 2:
+                            FP += 1
+                        else:
+                            TN += 1
+                    elif predicted == 15:
+                        if label == 0 or label == 2:
+                            FP += 1
+                        else:
+                            TP += 1
+            F1 = 2 * TP / (2 * TP + FP + FN)
             Accuracy = accuracy_score(testset[:, 0],y_pred)*100
             accuracies.append(Accuracy)
             f1s.append(F1)

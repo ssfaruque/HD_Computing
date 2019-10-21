@@ -11,17 +11,17 @@ from sklearn.metrics import classification_report
 def importdata():
     balance_data = pd.read_csv(
 'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/'+
-#'noisySets/DT_noisy_005_'+
+'noisySets/DT_noisy_005_'+
 #'noisySets/DT_noisy_01_'+
 #'noisySets/DT_noisy_015_'+
 #'noisySets/DT_noisy_02_'+
 #'noisySets/DT_noisy_03_'+
-'DNA_Anodisc.csv',
+#'DNA_Anodisc.csv',
 #'DNA_ECOLI.csv',
 #'DNA_inLiquidDNA.csv',
 #'Full_Set.csv',
 #'Yeast_inLiquidHK.csv',
-#'Yeast_inLiquidLive.csv',
+'Yeast_inLiquidLive.csv',
     sep= ',', header = None)
 
     # Printing the dataswet shape
@@ -104,13 +104,53 @@ def main():
     # Prediction using gini
     y_pred_gini = prediction(X_test, clf_gini)
     cal_accuracy(y_test, y_pred_gini)
+    TN = 0
+    TP = 0
+    FN = 0
+    FP = 0
+    for i in range(0,len(y_test)):
+        predicted = y_pred_gini[i]
+        label = y_test[i]
+
+        if predicted == label:
+            if predicted == 0 or predicted == 2:
+                TN += 1
+            else:
+                TP += 1
+        else:
+            if predicted == 0:
+                if label == 2:
+                    TN += 1
+                else:
+                    FN += 1
+            elif predicted == 2:
+                if label == 0:
+                    TN += 1
+                else:
+                    FN += 1
+            elif predicted == 5:
+                if label == 0 or label == 2:
+                    FP += 1
+                else:
+                    TP += 1
+            elif predicted == 10:
+                if label == 0 or label == 2:
+                    FP += 1
+                else:
+                    TN += 1
+            elif predicted == 15:
+                if label == 0 or label == 2:
+                    FP += 1
+                else:
+                    TP += 1
+    f1_score = 2 * TP / (2 * TP + FP + FN)
 
     print("Results Using Entropy:")
     # Prediction using entropy
     y_pred_entropy = prediction(X_test, clf_entropy)
     cal_accuracy(y_test, y_pred_entropy)
     report = classification_report(y_test, y_pred_entropy, output_dict = True)
-    print("Test F1: {}".format(report["weighted avg"]["f1-score"]))
+    print("Test F1: {}".format(round(f1_score,2)))#report["weighted avg"]["f1-score"]))
 
 
 # Calling main function

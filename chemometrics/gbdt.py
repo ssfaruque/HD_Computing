@@ -11,11 +11,22 @@ from catboost import CatBoostClassifier
 def importdata():
     balance_data = pd.read_csv(
 'https://raw.githubusercontent.com/ssfaruque/HD_Computing/master/chemometrics/datasets/DTreeSets/'+
+#
+#select only one from below
 #'noisySets/DT_noisy_005_'+
 #'noisySets/DT_noisy_01_'+
 #'noisySets/DT_noisy_015_'+
 #'noisySets/DT_noisy_02_'+
 #'noisySets/DT_noisy_03_'+
+#'noisySets/DT_multiplicative_075_'
+#'noisySets/DT_multiplicative_090_'
+#'noisySets/DT_multiplicative_110_'
+#'noisySets/DT_multiplicative_125_'
+#'noisySets/DT_additive_025_'
+#'noisySets/DT_additive_050_'
+#'noisySets/DT_additive_100_'
+#
+#select only one from below
 #'DNA_Anodisc.csv',
 #'DNA_ECOLI.csv',
 'DNA_inLiquidDNA.csv',
@@ -41,7 +52,7 @@ def splitdataset(balance_data):
 
     # Spliting the dataset into train and test
     X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size = 0.3, random_state = 51, shuffle = True, stratify = None)
+    X, Y, test_size = 0.90, random_state = 51, shuffle = True, stratify = None)
 
     return X, Y, X_train, X_test, y_train, y_test
 
