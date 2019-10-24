@@ -18,7 +18,7 @@ yellowc = '#7C05FB'
 colorc = {red:redc, blue:bluec, green:greenc, yellow:yellowc}
 
 
-def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, ylim, legend_names):
+def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, ylimtop, legend_names):
 	ax = fig.add_subplot(subplot)
 
 	ax1 = ax.plot(x, hdc, marker = 'o', markerfacecolor = redc, markersize = 5, color = red, linewidth = 2)
@@ -30,7 +30,7 @@ def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, 
 	plt.title(title)
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(ylabel)
-	plt.ylim(top=ylim)
+	plt.ylim(bottom=0, top=ylimtop)
 	ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 	ax.legend( (handles), (legend_names) )
 
