@@ -18,7 +18,7 @@ yellowc = '#7C05FB'
 colorc = {red:redc, blue:bluec, green:greenc, yellow:yellowc}
 
 
-def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, legend_names):
+def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, ylim, legend_names):
 	ax = fig.add_subplot(subplot)
 
 	ax1 = ax.plot(x, hdc, marker = 'o', markerfacecolor = redc, markersize = 5, color = red, linewidth = 2)
@@ -30,7 +30,7 @@ def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, 
 	plt.title(title)
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(ylabel)
-	plt.ylim(top=100)
+	plt.ylim(top=ylim)
 	ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 	ax.legend( (handles), (legend_names) )
 
@@ -44,6 +44,62 @@ categories = ['DNA ECOLI', 'Yeast inliquid HK', 'Yeast inliquid Live', 'DNA@Anod
 data = {category : {} for category in categories}
 xtitle = 0.5
 ytitle = 0.6
+
+
+
+
+
+
+######################################### Splits (ACCURACY) ########################################################
+fig0 = plt.figure()
+fig0.suptitle('Splits Accuracies', fontsize=16, x=xtitle, y=ytitle)
+
+xlabel = 'Number of Sets'
+ylabel = 'Accuracy (%)'
+legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
+
+data['x'] = [2, 3, 4, 5]
+
+# DNA ECOLI
+data[categories[0]]['hdc'] = [79.22, 80.11, 81.61, 81.56]
+data[categories[0]]['svm'] = [99.00, 98.78, 99.67, 99.44]
+data[categories[0]]['dt'] = [83.44, 89.00, 90.38, 80.22]
+data[categories[0]]['gbdt'] = [89.56, 89.78, 91.77, 91.22]
+
+# Yeast inliquid HK
+data[categories[1]]['hdc'] = [49.78, 46.11, 44.82, 45.00]
+data[categories[1]]['svm'] = [97.11, 98.33, 98.87, 98.89]
+data[categories[1]]['dt'] = [86.33, 88.67, 89.21, 90.00]
+data[categories[1]]['gbdt'] = [80.56, 83.33, 84.58, 86.00]
+
+# Yeast inliquid Live
+data[categories[2]]['hdc'] = [74.44, 72.11, 72.60, 72.11]
+data[categories[2]]['svm'] = [94.00, 96.44, 97.34, 97.22]
+data[categories[2]]['dt'] = [86.22, 88.44, 88.25, 88.78]
+data[categories[2]]['gbdt'] = [90.00, 84.11, 84.03, 96.33]
+
+# DNA@Anod
+data[categories[3]]['hdc'] = [63.22, 65.89, 67.92, 67.22]
+data[categories[3]]['svm'] = [92.78, 92.56, 94.80, 94.22]
+data[categories[3]]['dt'] = [81.11, 85.89, 86.57, 87.56]
+data[categories[3]]['gbdt'] = [81.11, 88.11, 89.34, 89.11]
+
+# Inliquid DNA
+data[categories[4]]['hdc'] = [83.11, 86.22, 84.67, 86.00]
+data[categories[4]]['svm'] = [89.44, 89.44, 89.30, 88.89]
+data[categories[4]]['dt'] = [79.33, 82.56, 82.49, 84.22]
+data[categories[4]]['gbdt'] = [82.00, 82.44, 82.94, 83.22]
+
+
+for i in range(0, len(categories)):
+	ax = plot_line_graph(fig0, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 100, legend_names)
+	ax.set_xticks(data['x'])
+	ax.set_xticklabels( ('2', '3', '4', '5') )
+
+
+plt.subplots_adjust(left = 0.05, right = 0.98, top = 0.53, bottom = 0.06, hspace = 0.200, wspace = 0.200)
+
+
 
 
 
@@ -89,7 +145,7 @@ data[categories[4]]['gbdt'] = [53.76, 67.20, 76.77]
 
 
 for i in range(0, len(categories)):
-	ax = plot_line_graph(fig1, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, legend_names)
+	ax = plot_line_graph(fig1, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 100, legend_names)
 	ax.set_xticks(data['x'])
 	ax.set_xticklabels( ('1', '3', '5') )
 
@@ -142,7 +198,7 @@ data[categories[4]]['gbdt'] = [43.50, 25.62, 25.61]
 
 
 for i in range(0, len(categories)):
-	ax = plot_line_graph(fig2, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, legend_names)
+	ax = plot_line_graph(fig2, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 100, legend_names)
 	ax.set_xticks(data['x'])
 	ax.set_xticklabels( ('0.05', '0.10', '0.15') )
 
@@ -196,7 +252,7 @@ data[categories[4]]['gbdt'] = [65.81, 83.10, 84.78, 83.77]
 
 
 for i in range(0, len(categories)):
-	ax = plot_line_graph(fig3, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, legend_names)
+	ax = plot_line_graph(fig3, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 100, legend_names)
 	ax.set_xticks(data['x'])
 	ax.set_xticklabels( ('0.75', '0.90', '1.10', '1.25') )
 
@@ -249,7 +305,7 @@ data[categories[4]]['gbdt'] = [84.58, 86.92, 89.58]
 
 
 for i in range(0, len(categories)):
-	ax = plot_line_graph(fig4, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, legend_names)
+	ax = plot_line_graph(fig4, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 100, legend_names)
 	ax.set_xticks(data['x'])
 	ax.set_xticklabels( ('0.025', '0.050', '0.10') )
 
@@ -260,6 +316,303 @@ plt.subplots_adjust(left = 0.05, right = 0.98, top = 0.53, bottom = 0.06, hspace
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######################################### Splits (F1) ########################################################
+
+fig5 = plt.figure()
+fig5.suptitle('Splits F1s', fontsize=16, x=xtitle, y=ytitle)
+
+xlabel = 'Number of Sets'
+ylabel = 'F1 Score'
+legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
+
+data['x'] = [2, 3, 4, 5]
+
+# DNA ECOLI
+data[categories[0]]['hdc'] = [0.87, 0.86, 0.87, 0.87]
+data[categories[0]]['svm'] = [0.99, 0.99, 1.0, 1.0]
+data[categories[0]]['dt'] = [0.90, 0.93, 0.94, 0.93]
+data[categories[0]]['gbdt'] = [0.94, 0.94, 0.95, 0.95]
+
+# Yeast inliquid HK
+data[categories[1]]['hdc'] = [0.82, 0.85, 0.85, 0.84]
+data[categories[1]]['svm'] = [0.98, 0.99, 0.99, 0.99]
+data[categories[1]]['dt'] = [0.97, 0.97, 0.97, 0.98]
+data[categories[1]]['gbdt'] = [0.92, 0.93, 0.93, 0.94]
+
+# Yeast inliquid Live
+data[categories[2]]['hdc'] = [0.86, 0.84, 0.85, 0.83]
+data[categories[2]]['svm'] = [0.99, 0.99, 0.99, 0.99]
+data[categories[2]]['dt'] = [0.93, 0.94, 0.93, 0.93]
+data[categories[2]]['gbdt'] = [0.95, 0.91, 0.92, 0.93]
+
+# DNA@Anod
+data[categories[3]]['hdc'] = [0.86, 0.87, 0.86, 0.87]
+data[categories[3]]['svm'] = [0.97, 0.97, 0.98, 0.98]
+data[categories[3]]['dt'] = [0.91, 0.92, 0.93, 0.93]
+data[categories[3]]['gbdt'] = [0.92, 0.95, 0.95, 0.94]
+
+# Inliquid DNA
+data[categories[4]]['hdc'] = [0.96, 0.98, 0.97, 0.98]
+data[categories[4]]['svm'] = [0.99, 0.99, 0.99, 0.99]
+data[categories[4]]['dt'] = [0.97, 0.97, 0.96, 0.96]
+data[categories[4]]['gbdt'] = [0.95, 0.96, 0.95, 0.96]
+
+
+for i in range(0, len(categories)):
+	ax = plot_line_graph(fig5, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 1.0, legend_names)
+	ax.set_xticks(data['x'])
+	ax.set_xticklabels( ('2', '3', '4', '5') )
+
+
+plt.subplots_adjust(left = 0.05, right = 0.98, top = 0.53, bottom = 0.06, hspace = 0.200, wspace = 0.200)
+
+
+
+
+
+
+######################################### LIMITED DATA (F1) ########################################################
+fig6 = plt.figure()
+fig6.suptitle('Limited Data F1s', fontsize=16, x=xtitle, y=ytitle)
+
+xlabel = 'Number of Samples'
+ylabel = 'F1 Score'
+legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
+
+data['x'] = [1, 3, 5]
+
+# DNA ECOLI
+data[categories[0]]['hdc'] = [0.78, 0.87, 0.84]
+data[categories[0]]['svm'] = [0.84, 0.86, 0.86]
+data[categories[0]]['dt'] = [0.75, 0.82, 0.87]
+data[categories[0]]['gbdt'] = [0.76, 0.83, 0.92]
+
+# Yeast inliquid HK
+data[categories[1]]['hdc'] = [0.82, 0.81, 0.79]
+data[categories[1]]['svm'] = [0.81, 0.80, 0.80]
+data[categories[1]]['dt'] = [0.80, 0.87, 0.95]
+data[categories[1]]['gbdt'] = [0.80, 0.91, 0.89]
+
+# Yeast inliquid Live
+data[categories[2]]['hdc'] = [0.83, 0.84, 0.84]
+data[categories[2]]['svm'] = [0.81, 0.83, 0.78]
+data[categories[2]]['dt'] = [0.82, 0.87, 0.89]
+data[categories[2]]['gbdt'] = [0.76, 0.87, 0.91]
+
+# DNA@Anod
+data[categories[3]]['hdc'] = [0.87, 0.87, 0.87]
+data[categories[3]]['svm'] = [0.89, 0.84, 0.88]
+data[categories[3]]['dt'] = [0.74, 0.94, 0.91]
+data[categories[3]]['gbdt'] = [0.80, 0.90, 0.91]
+
+# Inliquid DNA
+data[categories[4]]['hdc'] = [0.91, 0.95, 0.95]
+data[categories[4]]['svm'] = [0.86, 0.89, 0.89]
+data[categories[4]]['dt'] = [0.69, 0.93, 0.97]
+data[categories[4]]['gbdt'] = [0.75, 0.88, 0.91]
+
+
+for i in range(0, len(categories)):
+	ax = plot_line_graph(fig6, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 1.0, legend_names)
+	ax.set_xticks(data['x'])
+	ax.set_xticklabels( ('1', '3', '5') )
+
+
+plt.subplots_adjust(left = 0.05, right = 0.98, top = 0.53, bottom = 0.06, hspace = 0.200, wspace = 0.200)
+
+
+
+
+######################################### Gaussian Noise (F1) ########################################################
+
+fig7 = plt.figure()
+fig7.suptitle('Gaussian Noise F1s', fontsize=16, x=xtitle, y=ytitle)
+
+xlabel = 'Gaussian noise'
+ylabel = 'F1 Score'
+legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
+
+data['x'] = [0.05, 0.10, 0.15]
+
+# DNA ECOLI
+data[categories[0]]['hdc'] = [0.84, 0.74, 0.72]
+data[categories[0]]['svm'] = [0.80, 0.60, 0.57]
+data[categories[0]]['dt'] = [0.60, 0.54, 0.57]
+data[categories[0]]['gbdt'] = [0.60, 0.48, 0.47]
+
+# Yeast inliquid HK
+data[categories[1]]['hdc'] = [0.78, 0.75, 0.65]
+data[categories[1]]['svm'] = [0.79, 0.75, 0.57]
+data[categories[1]]['dt'] = [0.58, 0.54, 0.50]
+data[categories[1]]['gbdt'] = [0.61, 0.53, 0.47]
+
+# Yeast inliquid Live
+data[categories[2]]['hdc'] = [0.77, 0.73, 0.72]
+data[categories[2]]['svm'] = [0.73, 0.74, 0.64]
+data[categories[2]]['dt'] = [0.67, 0.50, 0.54]
+data[categories[2]]['gbdt'] = [0.69, 0.58, 0.54]
+
+# DNA@Anod
+data[categories[3]]['hdc'] = [0.90, 0.88, 0.90]
+data[categories[3]]['svm'] = [0.94, 0.92, 0.87]
+data[categories[3]]['dt'] = [0.77, 0.68, 0.57]
+data[categories[3]]['gbdt'] = [0.83, 0.67, 0.51]
+
+# Inliquid DNA
+data[categories[4]]['hdc'] = [0.83, 0.84, 0.67]
+data[categories[4]]['svm'] = [0.79, 0.69, 0.58]
+data[categories[4]]['dt'] = [0.66, 0.59, 0.57]
+data[categories[4]]['gbdt'] = [0.61, 0.52, 0.53]
+
+for i in range(0, len(categories)):
+	ax = plot_line_graph(fig7, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 1.0, legend_names)
+	ax.set_xticks(data['x'])
+	ax.set_xticklabels( ('0.05', '0.10', '0.15') )
+
+
+plt.subplots_adjust(left = 0.05, right = 0.98, top = 0.53, bottom = 0.06, hspace = 0.200, wspace = 0.200)
+
+
+
+
+
+######################################### Multiplicative Noise (F1) ########################################################
+
+fig8 = plt.figure()
+fig8.suptitle('Multiplicative Noise F1s', fontsize=16, x=xtitle, y=ytitle)
+
+xlabel = 'Multiplicative noise'
+ylabel = 'F1 Score'
+legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
+
+data['x'] = [0.75, 0.90, 1.10, 1.25]
+
+# DNA ECOLI
+data[categories[0]]['hdc'] = [0.81, 0.84, 0.85, 0.83]
+data[categories[0]]['svm'] = [1.0, 1.0, 1.0, 1.0]
+data[categories[0]]['dt'] = [0.94, 0.95, 0.94, 0.94]
+data[categories[0]]['gbdt'] = [0.95, 0.95, 0.96, 0.94]
+
+# Yeast inliquid HK
+data[categories[1]]['hdc'] = [0.78, 0.75, 0.65, 0.61]
+data[categories[1]]['svm'] = [0.79, 0.75, 0.57, 0.52]
+data[categories[1]]['dt'] = [0.58, 0.54, 0.50, 0.56]
+data[categories[1]]['gbdt'] = [0.61, 0.53, 0.47, 0.49]
+
+# Yeast inliquid Live
+data[categories[2]]['hdc'] = [0.79 ,0.78, 0.83, 0.81]
+data[categories[2]]['svm'] = [0.98, 0.99, 1.0, 0.99]
+data[categories[2]]['dt'] = [0.94, 0.95, 0.94, 0.90]
+data[categories[2]]['gbdt'] = [0.93, 0.94, 0.94, 0.93]
+
+# DNA@Anod
+data[categories[3]]['hdc'] = [0.78, 0.74, 0.93, 0.94]
+data[categories[3]]['svm'] = [0.96, 0.96, 0.96, 0.97]
+data[categories[3]]['dt'] = [0.92, 0.92, 0.90, 0.93]
+data[categories[3]]['gbdt'] = [0.94, 0.94, 0.94, 0.95]
+
+# Inliquid DNA
+data[categories[4]]['hdc'] = [0.83, 0.84, 0.67, 0.67]
+data[categories[4]]['svm'] = [0.79, 0.69, 0.58, 0.59]
+data[categories[4]]['dt'] = [0.66, 0.59, 0.57, 0.62]
+data[categories[4]]['gbdt'] = [0.61, 0.52, 0.53, 0.41]
+
+
+for i in range(0, len(categories)):
+	ax = plot_line_graph(fig8, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 1.0, legend_names)
+	ax.set_xticks(data['x'])
+	ax.set_xticklabels( ('0.75', '0.90', '1.10', '1.25') )
+
+
+plt.subplots_adjust(left = 0.05, right = 0.98, top = 0.53, bottom = 0.06, hspace = 0.200, wspace = 0.200)
+
+
+
+
+######################################### Additive Noise (F1) ########################################################
+
+fig9 = plt.figure()
+fig9.suptitle('Additive Noise F1s', fontsize=16, x=xtitle, y=ytitle)
+
+xlabel = 'Additive noise'
+ylabel = 'F1 Score'
+legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
+
+data['x'] = [0.025, 0.050, 0.10]
+
+# DNA ECOLI
+data[categories[0]]['hdc'] = [0.84, 0.90, 0.88]
+data[categories[0]]['svm'] = [1.0, 1.0, 1.0]
+data[categories[0]]['dt'] = [0.95, 0.96, 0.96]
+data[categories[0]]['gbdt'] = [0.96, 0.96, 0.97]
+
+# Yeast inliquid HK
+data[categories[1]]['hdc'] = [0.84, 0.90, 0.82]
+data[categories[1]]['svm'] = [0.99, 0.98, 0.99]
+data[categories[1]]['dt'] = [0.97, 0.97, 0.98]
+data[categories[1]]['gbdt'] = [0.95, 0.99, 0.98]
+
+# Yeast inliquid Live
+data[categories[2]]['hdc'] = [0.73, 0.75, 0.78]
+data[categories[2]]['svm'] = [1.0, 1.0, 1.0]
+data[categories[2]]['dt'] = [0.91, 0.95, 0.94]
+data[categories[2]]['gbdt'] = [0.93, 0.93, 0.94]
+
+# DNA@Anod
+data[categories[3]]['hdc'] = [0.92, 0.93, 0.95]
+data[categories[3]]['svm'] = [0.96, 0.98, 0.99]
+data[categories[3]]['dt'] = [0.94, 0.92, 1.0]
+data[categories[3]]['gbdt'] = [0.94, 0.94, 0.99]
+
+# Inliquid DNA
+data[categories[4]]['hdc'] = [0.92, 0.98, 0.89]
+data[categories[4]]['svm'] = [0.99, 0.98, 0.99]
+data[categories[4]]['dt'] = [0.98, 0.97, 0.98]
+data[categories[4]]['gbdt'] = [0.97, 0.98, 0.98]
+
+
+for i in range(0, len(categories)):
+	ax = plot_line_graph(fig9, subplots[i], data['x'], data[categories[i]]['hdc'], data[categories[i]]['svm'], data[categories[i]]['dt'], data[categories[i]]['gbdt'], categories[i], xlabel, ylabel, 1.0, legend_names)
+	ax.set_xticks(data['x'])
+	ax.set_xticklabels( ('0.025', '0.050', '0.10') )
+
+
+plt.subplots_adjust(left = 0.05, right = 0.98, top = 0.53, bottom = 0.06, hspace = 0.200, wspace = 0.200)
+
+
+
+
+
+
+
 plt.show()
-
-
