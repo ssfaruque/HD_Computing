@@ -13,13 +13,6 @@ def gen_rand_hv(D):
 
     return hv
 
-def binarizeHV(hv, threshold):
-    for i in range(len(hv)):
-        if hv[i] > threshold:
-            hv[i] = 1
-        else:
-            hv[i] = -1
-    return hv
 
 def _cos_angle(hv1, hv2):
     return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
@@ -44,10 +37,33 @@ def query(AM, query_hv, print_all=False):
     return label
 
 
+def save(obj, file_name):
+    file = open(file_name, "wb")
+    pickle.dump(obj, file)
+    file.close()
+
+
+def load(file_name):
+    file = open(file_name, "rb")
+    obj = pickle.load(file)
+    file.close()
+    return obj
+
+
+"""
+1. Create HD_Model object
+2. Generate necessary item memories
+3. Load dataset and train on it
+4. Query the model / Use testing set
+5. Save model to file (optional)
+"""
+
+
 class HD_Model(ABC):
     def __init__(self, D=10000):
         self.D = D
         self.iM  = {}
+        self.CiM = {}
         self.AM  = {}
         self.dataset = []
         super().__init__()
@@ -67,6 +83,13 @@ class HD_Model(ABC):
     def _cos_angle(self, hv1, hv2):
         return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
 
+    def binarizeHV(self, hv, threshold):
+        for i in range(len(hv)):
+            if hv[i] > threshold:
+                hv[i] = 1
+            else:
+                hv[i] = -1
+        return hv
 
     def query(self, query_hv, print_all=False):
         label = None
@@ -86,10 +109,9 @@ class HD_Model(ABC):
 
         return label
 
-    def gen_iM(self, list_of_symbols, D):
+    def gen_iM(self, list_of_symbols):
         for symbol in list_of_symbols:
-            self.iM[symbol] = gen_rand_hv(D)
-
+            self.iM[symbol] = gen_rand_hv(self.D)
 
     def gen_CiM(self, min_val, max_val, m):
         indices = rand.sample(range(self.D), self.D // 2)
@@ -107,64 +129,3 @@ class HD_Model(ABC):
             start = end
             end += num_bits_to_flip
             curr_numerical_val += numerical_step
-
-
-
-def save(obj, file_name):
-    file = open(file_name, "wb")
-    pickle.dump(obj, file)
-    file.close()
-
-def load(file_name):
-    file = open(file_name, "rb")
-    obj = pickle.load(file)
-    file.close()
-    return obj
-
-
-
-
-def func(D):
-    hv = []
-
-    for i in range(1000):
-        hv.append(gen_rand_hv(D))
-
-    hv.append(gen_rand_hv1(D))
-    hv.append(gen_rand_hv2(D))
-
-
-    A = np.zeros(D)
-
-    for i in range(1000):
-        A = A + hv[i]
-
-
-    B = binarizeHV(A + hv[1000], 0)
-    C = binarizeHV(A + hv[1001], 0)
-
-    similarity = cos_angle(B, C)
-
-    print(similarity)
-
-
-def main():
-    D = 10000
-
-    for i in range(100):
-        func(100)
-
-
-
-
-    """
-    1. Create HD_Model object
-    2. Generate necessary item memories
-    3. Load dataset and train on it
-    4. Query the model / Use testing set
-    5. Save model to file (optional)
-    """
-
-
-if __name__ == "__main__":
-    main()
