@@ -21,33 +21,6 @@ def binarizeHV(hv, threshold):
             hv[i] = -1
     return hv
 
-
-def gen_n_gram_sum(text, iM, D, n):
-    start = 0
-    end = n
-
-    sum_hv = np.zeros(D)
-    line = text.split("\n")[0]
-
-    while end < len(line):
-        letters = line[start:end]
-        num_shifts = n - 1
-
-        prod_hv = np.ones(D)
-
-        for c in letters:
-            letter_hv = np.roll(iM.get(c, np.zeros(D)), num_shifts)
-
-            prod_hv *= letter_hv
-            num_shifts -= 1
-
-        sum_hv += prod_hv
-        start += 1
-        end += 1
-
-    return sum_hv
-
-
 def _cos_angle(hv1, hv2):
     return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
 
