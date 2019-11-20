@@ -7,7 +7,6 @@ import pickle
 import time
 import statistics as stats
 import multiprocessing as mp
-
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 
@@ -16,6 +15,15 @@ D = 10000
 threshold = 0
 rand_indices = rand.sample(range(D), D // 2)
 
+schemes = {"convolution": convolution,
+           "multiplication": multiplication,
+           "trigram": trigram}
+
+threshold_values = {"DNA_ECOLI": 0.065,
+                    "Yeast_inliquid HK": 0.055,
+                    "DNA_INLIQUIDDNA": 0.0875,
+                    "DNA_DNA@Anod": 0.07,
+                    "Yeast_inliquid Live": 0.07}
 
 # dataset_name = sys.argv[1]
 # category = sys.argv[2]
@@ -50,6 +58,7 @@ def calc_wn_iM(min_hv, index, D, m):
 
     return hv
 
+# def preprocessing(abs_val, D, m):
 
 # ==================== ENCODING SCHEMES ====================
 
@@ -57,13 +66,11 @@ def trigram(absorbances, min_abs_hv, min_wn_hv, D, n=3):
     start = 0
     end = n
     index = 0
-
     sum_hv = np.zeros(D)
 
     while end < len(absorbances) - n + 1:
         n_gram_abs = absorbances[start:end]
         prod_hv = np.ones(D)
-
         num_shifts = n - 1
 
         for absorbance in n_gram_abs:
@@ -73,7 +80,6 @@ def trigram(absorbances, min_abs_hv, min_wn_hv, D, n=3):
             index += 1
             num_shifts -= 1
 
-
         sum_hv += prod_hv
         index -= (n - 1)
         start += 1
@@ -82,77 +88,30 @@ def trigram(absorbances, min_abs_hv, min_wn_hv, D, n=3):
     return sum_hv
 
 
-def convolution(absorbances, min_abs_hv, min_wn_hv, D, n=1):
-    start = 0
-    end = n
-    index = 0
-
+def convolution(absorbances, min_abs_hv, min_wn_hv, D):
     sum_hv = np.zeros(D)
 
-    while end < len(absorbances) - n + 1:
-        n_gram_abs = absorbances[start:end]
-        prod_hv = np.ones(D)
-
-        num_shifts = n - 1
-
-        for absorbance in n_gram_abs:
-            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
-            wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            tmp_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
-            prod_hv *= tmp_hv
-            index += 1
-            num_shifts -= 1
-
-
-        sum_hv += prod_hv
-        index -= (n - 1)
-        start += 1
-        end += 1
+    for i in range(0,len(absorbances)):
+        absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[i], D, m=1001)
+        wavenum_hv = calc_wn_iM(min_wn_hv, i, D, m=(len(absorbances) + 1))
+        result_hv = np.convolve(absorbance_hv, wavenum_hv, mode="same")
+        sum_hv += result_hv
 
     return sum_hv
 
 
 def multiplication(absorbances, min_abs_hv, min_wn_hv, D, n=1):
-    start = 0
-    end = n
-    index = 0
-
     sum_hv = np.zeros(D)
 
-    while end < len(absorbances) - n + 1:
-        n_gram_abs = absorbances[start:end]
-        prod_hv = np.ones(D)
-
-        num_shifts = n - 1
-
-        for absorbance in n_gram_abs:
-            absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[index], D, m=1001)
-            wavenum_hv = calc_wn_iM(min_wn_hv, index, D, m=(len(absorbances) + 1))
-            tmp_hv = absorbance_hv * wavenum_hv
-            prod_hv *= tmp_hv
-            index += 1
-            num_shifts -= 1
-
-
-        sum_hv += prod_hv
-        index -= (n - 1)
-        start += 1
-        end += 1
+    for i in range(0,len(absorbances)):
+        absorbance_hv = calc_abs_iM(min_abs_hv, absorbances[i], D, m=1001)
+        wavenum_hv = calc_wn_iM(min_wn_hv, i, D, m=(len(absorbances) + 1))
+        result_hv = absorbance_hv * wavenum_hv
+        sum_hv += result_hv
 
     return sum_hv
 
 # ============================================================
-
-
-schemes = {"convolution": convolution,
-           "multiplication": multiplication,
-           "trigram": trigram}
-
-threshold_values = {"DNA_ECOLI": 0.065,
-                    "Yeast_inliquid HK": 0.055,
-                    "DNA_INLIQUIDDNA": 0.0875,
-                    "DNA_DNA@Anod": 0.07,
-                    "Yeast_inliquid Live": 0.07}
 
 
 def binarizeHV(hv, threshold):
@@ -169,11 +128,9 @@ class Food_Model(hdc.HD_Model):
     wavenum_start = None
     AM = None
 
-
     def __init__(self, D, encoding_scheme):
         hdc.HD_Model.__init__(self, D)
         self.encoding_scheme = encoding_scheme
-
 
     @staticmethod
     def _single_train(features):
@@ -203,22 +160,6 @@ class Food_Model(hdc.HD_Model):
             label = result[0]
             encoding_scheme_result = result[1]
             self.AM[label] += encoding_scheme_result
-
-        """
-        for i in range(0, dataset_length):
-            print("Training on file: {}".format(self.trainset[i][1]))
-            label       = int(self.trainset[i][0])
-            absorbances = self.trainset[i][2:]
-            absorbances = list(map(float, absorbances))
-
-            #if label not in self.AM:
-            #    self.AM[label] = np.zeros(self.D)
-
-            result = self.encoding_scheme(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D)
-            self.AM[label] += result
-
-            print("{}% complete".format( round((i + 1) * 100 / dataset_length, 2) ))
-        """
 
         print("Trained on {} samples\n".format(dataset_length))
 
@@ -298,26 +239,6 @@ class Food_Model(hdc.HD_Model):
             correct += result[0]
             f1_result = result[1]
             f1_params[f1_result] += 1
-
-        """
-        for i in range(0, dataset_length):
-            print("Testing on file:{}".format(self.testset[i][1]))
-            label       = int(self.testset[i][0])
-            absorbances = self.testset[i][2:]
-            absorbances = list(map(float, absorbances))
-
-            ngram_sum = self.encoding_scheme(absorbances, self.iM["absorbance_start"], self.iM["wavenum_start"], self.D)
-            query_hv = binarizeHV(ngram_sum, 0)
-            predicted = self.query(query_hv)
-
-            print("{}% complete\t Guess: {}\t Truth: {}".format(round((i + 1) * 100 / dataset_length, 2), predicted, label))
-
-            if predicted == label:
-                correct += 1
-
-            f1_params = self._update_f1_results(f1_params, predicted, label)
-            total += 1
-        """
 
         print("Tested on {} samples\n".format(dataset_length))
         accuracy = correct / total
@@ -403,8 +324,8 @@ def main():
     programStartTime = time.time()
     food_model = Food_Model(D, encoding_scheme=schemes[sys.argv[3]])
     food_model.load_dataset(float(sys.argv[4]))
-    food_model.gen_iM(["wavenum_start"], D)
-    food_model.gen_iM(["absorbance_start"], D)
+    food_model.gen_iM(["wavenum_start"])
+    food_model.gen_iM(["absorbance_start"])
 
     Food_Model.wavenum_start = food_model.iM["wavenum_start"]
     Food_Model.absorbance_start = food_model.iM["absorbance_start"]
