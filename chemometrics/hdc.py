@@ -13,26 +13,6 @@ def gen_rand_hv(D):
 
     return hv
 
-def gen_rand_hv1(D):
-    hv = np.empty(D)
-    indices = rand.sample(range(D), D) # an array of random unique integers in the range [0, D)
-    hv[indices[0 : int(D/5)]] = -1
-    hv[indices[int(D/5) : D]] = +1
-
-    return hv
-
-def gen_rand_hv2(D):
-    hv = np.empty(D)
-    indices = rand.sample(range(D), D) # an array of random unique integers in the range [0, D)
-    hv[indices[0 : int(2*D/5)]] = -1
-    hv[indices[int(2*D/5) : D]] = +1
-
-    return hv
-
-def cos_angle(hv1, hv2):
-    return sum((hv1 * hv2)) / (np.linalg.norm(hv1) * np.linalg.norm(hv2))
-
-
 def binarizeHV(hv, threshold):
     for i in range(len(hv)):
         if hv[i] > threshold:
