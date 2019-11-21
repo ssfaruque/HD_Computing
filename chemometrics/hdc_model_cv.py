@@ -11,11 +11,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 
 
-D = 10000
-threshold = 0
-rand_indices = rand.sample(range(D), D // 2)
-
-
 # dataset_name = sys.argv[1]
 # category = sys.argv[2]
 # scheme = sys.argv[3]
@@ -24,45 +19,47 @@ rand_indices = rand.sample(range(D), D // 2)
 # output_file = sys.argv[6]
 
 
-# generate the iM corresponding to an absorbance on the fly
+D = 10000 # Dimensionality = 10000
+rand_indices = rand.sample(range(D), D // 2) # Stores indices from 0 to D-1 in random order
+threshold = 0 # Initializing threshold parameter for preprocessing
+threshold_values = {"DNA_ECOLI": 0.065,
+                    "Yeast_inliquid HK": 0.055,
+                    "DNA_INLIQUIDDNA": 0.0875,
+                    "DNA_DNA@Anod": 0.07,
+                    "Yeast_inliquid Live": 0.07}
+
+
+# Generate the CiM hypervector corresponding to an absorbance on the fly
 def calc_abs_iM(min_hv, abs_val, D, m):
     if  abs_val < threshold:
         return np.zeros(D)
     num_bits_to_flip = math.floor((D / 2) / (m - 1))
     hv = np.copy(min_hv)
-
     step_size = 1 / (m - 1)
     level = round(abs_val / step_size)
-
     hv[rand_indices[0 : (num_bits_to_flip * level)]] *= -1
-
     return hv
 
 
+# Generate the CiM hypervector corresponding to a wavenumber on the fly
 def calc_wn_iM(min_hv, index, D, m):
     num_bits_to_flip = math.floor((D / 2) / (m - 1))
     hv = np.copy(min_hv)
-
     level = index
-
     hv[rand_indices[0 : (num_bits_to_flip * level)]] *= -1
-
     return hv
 
 
 # ==================== ENCODING SCHEMES ====================
-
 def trigram(absorbances, min_abs_hv, min_wn_hv, D, n=3):
     start = 0
     end = n
     index = 0
-
     sum_hv = np.zeros(D)
 
     while end < len(absorbances) - n + 1:
         n_gram_abs = absorbances[start:end]
         prod_hv = np.ones(D)
-
         num_shifts = n - 1
 
         for absorbance in n_gram_abs:
@@ -71,7 +68,6 @@ def trigram(absorbances, min_abs_hv, min_wn_hv, D, n=3):
             prod_hv *= tmp_hv
             index += 1
             num_shifts -= 1
-
 
         sum_hv += prod_hv
         index -= (n - 1)
@@ -104,19 +100,13 @@ def multiplication(absorbances, min_abs_hv, min_wn_hv, D, n=1):
 
     return sum_hv
 
-# ============================================================
+
 schemes = {"c": convolution,
            "m": multiplication,
            "t": trigram}
+# ============================================================
 
-
-threshold_values = {"DNA_ECOLI": 0.065,
-                    "Yeast_inliquid HK": 0.055,
-                    "DNA_INLIQUIDDNA": 0.0875,
-                    "DNA_DNA@Anod": 0.07,
-                    "Yeast_inliquid Live": 0.07}
-
-
+# Binarizes a hypervector to +1s and -1s
 def binarizeHV(hv, threshold):
     for i in range(len(hv)):
         if hv[i] > threshold:
@@ -126,6 +116,7 @@ def binarizeHV(hv, threshold):
     return hv
 
 
+# HDC model for chemometric application
 class Food_Model(hdc.HD_Model):
     absorbance_start = None
     wavenum_start = None
@@ -137,15 +128,14 @@ class Food_Model(hdc.HD_Model):
         self.ppm_vals = [0, 2, 5, 10, 15]
 
     @staticmethod
-    def _single_train(features):
+    def _single_train(features): # Trains on a single row of the dataset
         print("Training on file: {}".format(features[1]))
         label = int(features[0])
-        absorbances = features[2:]
-        absorbances = list(map(float, absorbances))
+        absorbances = list(map(float, features[2:]))
         result = schemes[sys.argv[3]](absorbances, Food_Model.absorbance_start, Food_Model.wavenum_start, D)
         return (label, result)
 
-    def train(self):
+    def train(self): # Multithreaded to train on each sample in parallel
         dataset_length = len(self.trainset)
         print("Beginning training...")
 
@@ -169,18 +159,14 @@ class Food_Model(hdc.HD_Model):
 
         Food_Model.AM = self.AM
 
-
     @staticmethod
-    def _single_test(features):
+    def _single_test(features): # Tests on a single row of the dataset
         print("Testing on file: {}".format(features[1]))
         label = int(features[0])
-        absorbances = features[2:]
-        absorbances = list(map(float, absorbances))
+        absorbances = list(map(float, features[2:]))
         result = schemes[sys.argv[3]](absorbances, Food_Model.absorbance_start, Food_Model.wavenum_start, D)
-
         query_hv = binarizeHV(result, 0)
         predicted = hdc.query(Food_Model.AM, query_hv)
-
         correct = int(predicted == label)
         f1 = None
 
@@ -218,13 +204,11 @@ class Food_Model(hdc.HD_Model):
 
         return (correct, f1)
 
-
-    def test(self):
+    def test(self): # Multithreaded to test on each sample in parallel
         print("Beginning testing...")
         dataset_length = len(self.testset)
         total = dataset_length
         correct = 0
-
         f1_params = {}
         f1_params["TN"] = 0
         f1_params["TP"] = 0
@@ -241,53 +225,49 @@ class Food_Model(hdc.HD_Model):
             f1_result = result[1]
             f1_params[f1_result] += 1
 
-        print("Tested on {} samples\n".format(dataset_length))
         accuracy = correct / total
         f1 = 2 * f1_params["TP"] / (2 * f1_params["TP"] + f1_params["FP"] + f1_params["FN"])
 
+        print("Tested on {} samples\n".format(dataset_length))
         print("Accuracy: {}%".format(round(accuracy * 100, 2)))
         print("F1 score: {}".format(round(f1, 2)))
 
         return accuracy, f1
 
-
-    def _filter_dataset(self, dataset, name):
+    def _filter_dataset(self, dataset, name): # Retreives data for a specific category
         filtered_dataset = []
 
         for row in dataset:
             if name in row[1]:
                 filtered_dataset.append(row)
-        return np.array(filtered_dataset)
 
+        return np.array(filtered_dataset)
 
     def load_dataset(self, fraction_train):
         self.fraction_train = fraction_train
         file = open(sys.argv[1], "r")
-        self.dataset = file.read().splitlines()
-        self.dataset = self.dataset[1:]
+        self.dataset = file.read().splitlines()[1:]
+
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
         self.dataset = self._filter_dataset(self.dataset, sys.argv[2])
         np.random.shuffle(self.dataset)
 
-
-    def update_train_and_test_sets(self, training_indices, testing_indices):
+    def update_train_and_test_sets(self, training_indices, testing_indices): # Recreates training and testing sets for every split
         self.trainset = self.dataset[training_indices]
         self.testset = self.dataset[testing_indices]
 
-
-def save(obj, file_name):
+def save(obj, file_name): # Serializes the model to a file
     file = open(file_name, "wb")
     pickle.dump(obj, file)
     file.close()
 
-def load(file_name):
+def load(file_name): # Deserializes the file to a model
     file = open(file_name, "rb")
     obj = pickle.load(file)
     file.close()
     return obj
-
 
 def main():
     programStartTime = time.time()
@@ -302,7 +282,6 @@ def main():
     accuracies = []
     f1s = []
     num_splits = int(sys.argv[4])
-
     kf = KFold(n_splits=num_splits)
     split_num = 1
 
@@ -311,10 +290,8 @@ def main():
         food_model.update_train_and_test_sets(training_indices, testing_indices)
         food_model.train()
         accuracy, f1 = food_model.test()
-
         accuracies.append(accuracy)
         f1s.append(f1)
-
         split_num += 1
 
     programEndtTime = time.time()
