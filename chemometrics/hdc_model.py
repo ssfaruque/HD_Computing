@@ -132,6 +132,7 @@ class Food_Model(hdc.HD_Model):
     def __init__(self, D, encoding_scheme):
         hdc.HD_Model.__init__(self, D)
         self.encoding_scheme = encoding_scheme
+        self.ppm_vals = [0, 2, 5, 10, 15] # Also add labels in lines: 302-303
 
     @staticmethod
     def _single_train(features):
@@ -219,6 +220,7 @@ class Food_Model(hdc.HD_Model):
         return (correct, f1)
 
 
+
     def test(self):
         print("Beginning testing...")
         dataset_length = len(self.testset)
@@ -282,31 +284,23 @@ class Food_Model(hdc.HD_Model):
         return indices
 
     def retrieve_indices_of_all_labels(self):
-        self.ppm0 = self.retrieve_indices_of_label(0)
-        self.ppm2 = self.retrieve_indices_of_label(2)
-        self.ppm5 = self.retrieve_indices_of_label(5)
-        self.ppm10 = self.retrieve_indices_of_label(10)
-        self.ppm15 = self.retrieve_indices_of_label(15)
+        self.ppms = {}
+
+        for label in self.ppm_vals:
+            self.ppms[label] = self.retrieve_indices_of_label(label)
 
     def split_train_and_test(self):
         self.retrieve_indices_of_all_labels()
         num_files_per_category = int(sys.argv[4])
+        ppm_indices = {}
+        ppm_samples = {}
 
-        ppm0_indices = self.ppm0[0 : num_files_per_category]
-        ppm2_indices = self.ppm2[0 : num_files_per_category]
-        ppm5_indices = self.ppm5[0 : num_files_per_category]
-        ppm10_indices = self.ppm10[0 : num_files_per_category]
-        ppm15_indices = self.ppm15[0 : num_files_per_category]
+        for label in self.ppm_vals:
+            ppm_indices[label] = self.ppms[label][0 : num_files_per_category]
+            ppm_samples[label] = np.copy(self.dataset[ppm_indices[label]])
 
-        ppm0_samples = np.copy(self.dataset[ppm0_indices])
-        ppm2_samples = np.copy(self.dataset[ppm2_indices])
-        ppm5_samples = np.copy(self.dataset[ppm5_indices])
-        ppm10_samples = np.copy(self.dataset[ppm10_indices])
-        ppm15_samples = np.copy(self.dataset[ppm15_indices])
-
-        self.trainset = np.concatenate((ppm0_samples, ppm2_samples, ppm5_samples, ppm10_samples, ppm15_samples))
-        self.testset = np.delete(self.dataset, (ppm0_indices + ppm2_indices + ppm5_indices + ppm10_indices + ppm15_indices), axis=0)
-
+        self.trainset = np.concatenate((ppm_samples[0], ppm_samples[2], ppm_samples[5], ppm_samples[10], ppm_samples[15]))
+        self.testset = np.delete(self.dataset, (ppm_indices[0] + ppm_indices[2] + ppm_indices[5] + ppm_indices[10] + ppm_indices[15]), axis=0)
 
 
 def save(obj, file_name):
