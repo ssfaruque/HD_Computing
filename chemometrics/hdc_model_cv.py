@@ -7,7 +7,6 @@ import pickle
 import time
 import statistics as stats
 import multiprocessing as mp
-
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 
@@ -16,15 +15,6 @@ D = 10000
 threshold = 0
 rand_indices = rand.sample(range(D), D // 2)
 
-schemes = {"convolution": convolution,
-           "multiplication": multiplication,
-           "trigram": trigram}
-
-threshold_values = {"DNA_ECOLI": 0.065,
-                    "Yeast_inliquid HK": 0.055,
-                    "DNA_INLIQUIDDNA": 0.0875,
-                    "DNA_DNA@Anod": 0.07,
-                    "Yeast_inliquid Live": 0.07}
 
 # dataset_name = sys.argv[1]
 # category = sys.argv[2]
@@ -115,6 +105,16 @@ def multiplication(absorbances, min_abs_hv, min_wn_hv, D, n=1):
     return sum_hv
 
 # ============================================================
+schemes = {"c": convolution,
+           "m": multiplication,
+           "t": trigram}
+
+
+threshold_values = {"DNA_ECOLI": 0.065,
+                    "Yeast_inliquid HK": 0.055,
+                    "DNA_INLIQUIDDNA": 0.0875,
+                    "DNA_DNA@Anod": 0.07,
+                    "Yeast_inliquid Live": 0.07}
 
 
 def binarizeHV(hv, threshold):
@@ -333,7 +333,9 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) != 7:
         print("Usage: python3 hdc_model.py name_of_dataset category scheme num_sets num_runs name_of_output_file ")
-        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI multiplication 4 10 output.txt")
+        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI m 4 10 output.txt")
+        print("\nSchemes:- \nc: convolution\nm: multiplication\nt: trigram")
+        # print("\nCategories:- \n1: DNA ECOLI\n2: DNA Anodisc\n3: DNA In-Liquid DNA\n4: Yeast In-Liquid HK\n5: Yeast In-Liquid Live\n")
 
     else:
         NUM_RUNS = int(sys.argv[5])
