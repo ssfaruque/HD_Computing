@@ -131,11 +131,10 @@ class Food_Model(hdc.HD_Model):
     wavenum_start = None
     AM = None
 
-
     def __init__(self, D, encoding_scheme):
         hdc.HD_Model.__init__(self, D)
         self.encoding_scheme = encoding_scheme
-
+        self.ppm_vals = [0, 2, 5, 10, 15]
 
     @staticmethod
     def _single_train(features):
@@ -150,11 +149,8 @@ class Food_Model(hdc.HD_Model):
         dataset_length = len(self.trainset)
         print("Beginning training...")
 
-        self.AM[0] = np.zeros(self.D)
-        self.AM[2] = np.zeros(self.D)
-        self.AM[5] = np.zeros(self.D)
-        self.AM[10] = np.zeros(self.D)
-        self.AM[15] = np.zeros(self.D)
+        for label in self.ppm_vals:
+            self.AM[label] = np.zeros(self.D)
 
         thread_pool = mp.Pool(mp.cpu_count())
         results = thread_pool.map(Food_Model._single_train, self.trainset)
@@ -275,9 +271,6 @@ class Food_Model(hdc.HD_Model):
         self.dataset = self._filter_dataset(self.dataset, sys.argv[2])
         np.random.shuffle(self.dataset)
 
-        #split_mark = math.floor(self.fraction_train * len(self.dataset))
-        #self.trainset = self.dataset[0 : split_mark]
-        #self.testset = self.dataset[split_mark :]
 
     def update_train_and_test_sets(self, training_indices, testing_indices):
         self.trainset = self.dataset[training_indices]
