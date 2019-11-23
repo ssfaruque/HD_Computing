@@ -40,7 +40,7 @@ def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, 
 
 
 subplots = [151, 152, 153, 154, 155]
-categories = ['DNA ECOLI', 'DNA@Anod', 'Inliquid DNA', 'Yeast inliquid HK', 'Yeast inliquid Live']
+categories = ['DNA E.coli', 'DNA@Anod', 'Inliquid DNA', 'Yeast inliquid HK', 'Yeast inliquid Live']
 data = {category : {} for category in categories}
 xtitle = 0.5
 ytitle = 0.6
@@ -354,7 +354,7 @@ fig5 = plt.figure()
 fig5.suptitle('Splits F1s', fontsize=16, x=xtitle, y=ytitle)
 
 xlabel = 'Number of splits'
-ylabel = 'F1 Score'
+ylabel = 'F1-score'
 legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
 
 data['x'] = [2, 3, 4, 5]
@@ -409,7 +409,7 @@ fig6 = plt.figure()
 fig6.suptitle('Limited Data F1s', fontsize=16, x=xtitle, y=ytitle)
 
 xlabel = 'Number of samples'
-ylabel = 'F1 Score'
+ylabel = 'F1-score'
 legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
 
 data['x'] = [1, 3, 5]
@@ -462,7 +462,7 @@ fig7 = plt.figure()
 fig7.suptitle('White Gaussian Noise F1s', fontsize=16, x=xtitle, y=ytitle)
 
 xlabel = 'Standard deviation (σ)'
-ylabel = 'F1 Score'
+ylabel = 'F1-score'
 legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
 
 data['x'] = [0.05, 0.10, 0.15]
@@ -517,7 +517,7 @@ fig8 = plt.figure()
 fig8.suptitle('Multiplicative Noise F1s', fontsize=16, x=xtitle, y=ytitle)
 
 xlabel = 'Multiplier'
-ylabel = 'F1 Score'
+ylabel = 'F1-score'
 legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
 
 data['x'] = [0.75, 0.90, 1.10, 1.25]
@@ -570,7 +570,7 @@ fig9 = plt.figure()
 fig9.suptitle('Additive Noise F1s', fontsize=16, x=xtitle, y=ytitle)
 
 xlabel = 'Additive constant'
-ylabel = 'F1 Score'
+ylabel = 'F1-score'
 legend_names = ['HDC (convolution)', 'SVM', 'Decision Tree', 'Gradient Boosted Decision Tree']
 
 data['x'] = [0.025, 0.050, 0.10]
