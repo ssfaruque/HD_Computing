@@ -40,7 +40,7 @@ def plot_line_graph(fig, subplot, x, hdc, svm, dt, gbdt, title, xlabel, ylabel, 
 
 
 subplots = [151, 152, 153, 154, 155]
-categories = ['DNA E.coli', 'DNA@Anod', 'Inliquid DNA', 'Yeast inliquid HK', 'Yeast inliquid Live']
+categories = ['DNA E.coli', 'DNA Anodisc', 'DNA In-Liquid DNA', 'Yeast In-Liquid HK', 'Yeast In-Liquid Live']
 data = {category : {} for category in categories}
 xtitle = 0.5
 ytitle = 0.6
