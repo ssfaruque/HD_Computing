@@ -27,6 +27,11 @@ threshold_values = {"DNA_ECOLI": 0.065,
                     "DNA_INLIQUIDDNA": 0.0875,
                     "DNA_DNA@Anod": 0.07,
                     "Yeast_inliquid Live": 0.07}
+category_names = {"1": "DNA_ECOLI",
+                  "2": "DNA_DNA@Anod",
+                  "3": "DNA_INLIQUIDDNA",
+                  "4": "Yeast_inliquid HK",
+                  "5": "Yeast_inliquid Live"}
 
 
 # Generate the CiM hypervector corresponding to an absorbance on the fly
@@ -251,7 +256,7 @@ class Food_Model(hdc.HD_Model):
         for i in range(0, len(self.dataset)):
             self.dataset[i] = self.dataset[i].split(",")
 
-        self.dataset = self._filter_dataset(self.dataset, sys.argv[2])
+        self.dataset = self._filter_dataset(self.dataset, category_names[sys.argv[2]])
         np.random.shuffle(self.dataset)
 
     def update_train_and_test_sets(self, training_indices, testing_indices): # Recreates training and testing sets for every split
@@ -302,14 +307,14 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) != 7:
-        print("Usage: python3 hdc_model.py name_of_dataset category scheme num_sets num_runs name_of_output_file ")
-        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv DNA_ECOLI m 4 10 output.txt")
+        print("Usage: python3 hdc_model.py name_of_dataset category_num scheme num_sets num_runs name_of_output_file ")
+        print("e.g. python3 hdc_model.py datasets/our_aggregate_data.csv 1 m 4 10 output.txt")
         print("\nSchemes:- \nc: convolution\nm: multiplication\nt: trigram")
-        # print("\nCategories:- \n1: DNA ECOLI\n2: DNA Anodisc\n3: DNA In-Liquid DNA\n4: Yeast In-Liquid HK\n5: Yeast In-Liquid Live\n")
+        print("\nCategories:- \n1: DNA ECOLI\n2: DNA Anodisc\n3: DNA In-Liquid DNA\n4: Yeast In-Liquid HK\n5: Yeast In-Liquid Live\n")
 
     else:
         NUM_RUNS = int(sys.argv[5])
-        threshold = threshold_values[sys.argv[2]]
+        threshold = threshold_values[category_names[sys.argv[2]]]
         file = open(sys.argv[6], "w")
         accuracies = []
         f1s = []
