@@ -36,8 +36,8 @@ category_names = {"1": "DNA_ECOLI",
 
 # Generate the CiM hypervector corresponding to an absorbance on the fly
 def calc_abs_iM(min_hv, abs_val, D, m):
-    if  abs_val < threshold:
-        return np.zeros(D)
+    # if  abs_val < threshold:
+    #     return np.zeros(D)
     num_bits_to_flip = math.floor((D / 2) / (m - 1))
     hv = np.copy(min_hv)
     step_size = 1 / (m - 1)
